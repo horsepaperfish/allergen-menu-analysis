@@ -1,0 +1,68 @@
+.file-upload {
+  width: 100%;
+  max-width: 500px;
+  padding: 60px 40px;
+  border: 3px dashed #fde68a;
+  border-radius: 16px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.file-upload:hover {
+  border-color: #f59e0b;
+  background: #fffbeb;
+}
+
+.file-upload.dragging {
+  border-color: #f59e0b;
+  background: #fef3c7;
+  transform: scale(1.02);
+}
+
+.upload-icon {
+  color: #f59e0b;
+  margin-bottom: 20px;
+}
+
+.upload-icon svg {
+  display: inline-block;
+}
+
+.file-upload h2 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 12px 0;
+}
+
+.file-upload p {
+  color: #6b7280;
+  font-size: 16px;
+  margin: 0 0 8px 0;
+}
+
+.file-types {
+  font-size: 14px;
+  color: #9ca3af;
+}
+
+@media (max-width: 768px) {
+  .file-upload {
+    padding: 40px 30px;
+  }
+
+  .file-upload h2 {
+    font-size: 20px;
+  }
+
+  .file-upload p {
+    font-size: 14px;
+  }
+
+  .upload-icon svg {
+    width: 40px;
+    height: 40px;
+  }
+}
