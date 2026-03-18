@@ -54,7 +54,7 @@ async function analyzeMenuWithClaude(menuText) {
         role: 'user',
         content: `Analyze the following food menu and identify allergens in each item. For each menu item, provide:
 1. The item name
-2. A list of common allergens present (Dairy, Eggs, Fish, Shellfish, Tree Nuts, Peanuts, Wheat, Soy, Gluten, Sesame)
+2. A list of common allergens present from this list: Dairy, Eggs, Fish, Shellfish, Tree Nuts, Peanuts, Wheat, Soy, Gluten, Sesame, Corn, Mustard, Celery, Lupin, Molluscs, Sulfites
 3. A brief description if ingredients are mentioned
 
 Return the results as a JSON array with this structure:
