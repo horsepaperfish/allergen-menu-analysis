@@ -1,7 +1,56 @@
-.file-upload {
+.upload-container {
   width: 100%;
   max-width: 500px;
-  padding: 60px 40px;
+  text-align: center;
+}
+
+.upload-options {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.upload-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 24px;
+  background: #fbbf24;
+  border: 2px solid #f59e0b;
+  border-radius: 10px;
+  color: #1f2937;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.upload-btn:hover {
+  background: #f59e0b;
+  border-color: #d97706;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.upload-btn:active {
+  transform: translateY(0);
+}
+
+.upload-btn svg {
+  flex-shrink: 0;
+}
+
+.or-divider {
+  color: #9ca3af;
+  font-size: 16px;
+  font-weight: 500;
+  margin: 0 0 24px 0;
+}
+
+.file-upload {
+  width: 100%;
+  padding: 50px 40px;
   border: 3px dashed #fde68a;
   border-radius: 16px;
   background: white;
@@ -23,7 +72,7 @@
 
 .upload-icon {
   color: #f59e0b;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .upload-icon svg {
@@ -31,15 +80,15 @@
 }
 
 .file-upload h2 {
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 600;
   color: #1f2937;
   margin: 0 0 12px 0;
 }
 
-.file-upload p {
+.drag-text {
   color: #6b7280;
-  font-size: 16px;
+  font-size: 15px;
   margin: 0 0 8px 0;
 }
 
@@ -49,16 +98,38 @@
 }
 
 @media (max-width: 768px) {
+  .upload-options {
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .upload-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 12px 20px;
+    font-size: 15px;
+  }
+
+  .or-divider {
+    font-size: 15px;
+    margin-bottom: 20px;
+  }
+
   .file-upload {
-    padding: 40px 30px;
+    padding: 35px 25px;
   }
 
   .file-upload h2 {
-    font-size: 20px;
+    font-size: 19px;
   }
 
-  .file-upload p {
+  .drag-text {
     font-size: 14px;
+  }
+
+  .file-types {
+    font-size: 13px;
   }
 
   .upload-icon svg {

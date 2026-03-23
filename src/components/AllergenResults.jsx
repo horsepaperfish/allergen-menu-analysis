@@ -39,8 +39,9 @@ function AllergenResults({ results }) {
     if (selectedAllergen === 'All') {
       return results
     }
+    // Show items WITHOUT the selected allergen
     return results.filter(item =>
-      item.allergens && item.allergens.includes(selectedAllergen)
+      !item.allergens || !item.allergens.includes(selectedAllergen)
     )
   }, [results, selectedAllergen])
 
@@ -60,8 +61,9 @@ function AllergenResults({ results }) {
           All Items ({results.length})
         </button>
         {allAllergens.map(allergen => {
+          // Count items WITHOUT this allergen
           const count = results.filter(item =>
-            item.allergens && item.allergens.includes(allergen)
+            !item.allergens || !item.allergens.includes(allergen)
           ).length
           return (
             <button
