@@ -11,7 +11,9 @@ async function extractTextFromBuffer(buffer, mimeType) {
     throw new Error('PDF parsing not supported in serverless environment. Please use images or text files.')
   } else if (mimeType.startsWith('image/')) {
     const { data: { text } } = await Tesseract.recognize(buffer, 'eng', {
-      logger: m => console.log(m)
+      logger: m => console.log(m),
+      corePath: 'https://cdn.jsdelivr.net/npm/tesseract.js-core@5/tesseract-core.wasm.js',
+      workerPath: 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/worker.min.js',
     })
     return text
   } else if (mimeType === 'text/plain') {
