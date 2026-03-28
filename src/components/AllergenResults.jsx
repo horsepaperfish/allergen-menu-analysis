@@ -102,6 +102,9 @@ function AllergenResults({ results }) {
             {item.description && (
               <p className="item-description">{item.description}</p>
             )}
+            {item.dishInfo && (
+              <p className="dish-info">{item.dishInfo}</p>
+            )}
           </div>
         ))}
       </div>

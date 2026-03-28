@@ -26,3 +26,12 @@ the menu option? This way the user can just take a
 photo of the menu and it automatically uploads 
 through the AI. a "take a photo" and "select from 
 gallery" option would be nice.
+- a few  UI fixes, can we make the 
+backdrop of the filters  stand out more? make it a 
+dark yellow, then if a  user clicks on it, a 
+lighter yellow popup appears over it.
+- Another feature I want to  add is showing the 
+concentration of each  allergen. like for 
+example, house made chips  may have mustard, but how 
+much mustard? a percentage showing for example,  "only mustard in sauce" or "70-80% mustard, high 
+concentration" may be helpful, as for example, some people have lactose intolerances, but are not severe allergies. 

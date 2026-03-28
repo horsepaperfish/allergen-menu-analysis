@@ -52,34 +52,59 @@ async function analyzeMenuWithClaude(menuText) {
     messages: [
       {
         role: 'user',
-        content: `Analyze the following food menu and identify allergens in each item. For each menu item, provide:
-1. The item name
-2. A list of common allergens present from this list: Dairy, Eggs, Fish, Shellfish, Tree Nuts, Peanuts, Wheat, Soy, Gluten, Sesame, Corn, Mustard, Celery, Lupin, Molluscs, Sulfites
-3. A brief description if ingredients are mentioned
+        content: `Analyze the following food menu and identify allergens in each item.
 
-Return the results as a JSON array with this structure:
+For EACH item, you MUST include:
+1. The item name
+2. List of allergens from: Dairy, Eggs, Fish, Shellfish, Tree Nuts, Peanuts, Wheat, Soy, Gluten, Sesame, Corn, Mustard, Celery, Lupin, Molluscs, Sulfites
+3. Allergen concentration info (e.g. "Dairy: major (cheese is primary ingredient), Wheat: minor (in sauce)")
+4. What the dish actually is (e.g. "Grilled chicken sandwich with lettuce and tomato")
+
+REQUIRED JSON format:
 [
   {
-    "name": "Menu Item Name",
+    "name": "Item name",
     "allergens": ["Allergen1", "Allergen2"],
-    "description": "Brief ingredient description if available"
+    "description": "Dairy: major (cheese), Wheat: minor (sauce)",
+    "dishInfo": "Grilled chicken sandwich with lettuce and tomato"
   }
 ]
 
 Menu text:
 ${menuText}
 
-Only return the JSON array, no other text.`
+Return ONLY the JSON array. The description field MUST contain concentration info.`
       }
     ]
   })
 
   const responseText = message.content[0].text
 
+  // Try to extract JSON array from response
   const jsonMatch = responseText.match(/\[[\s\S]*\]/)
-  const allergenData = jsonMatch ? JSON.parse(jsonMatch[0]) : []
+  if (!jsonMatch) {
+    console.error('No JSON array found in response')
+    return []
+  }
 
-  return allergenData
+  try {
+    const allergenData = JSON.parse(jsonMatch[0])
+    return allergenData
+  } catch (error) {
+    console.error('JSON parse error:', error.message)
+    console.error('Response text:', responseText.substring(0, 500))
+    // Try to clean up common JSON errors
+    try {
+      // Remove trailing commas before closing brackets/braces
+      const cleaned = jsonMatch[0]
+        .replace(/,(\s*[}\]])/g, '$1')
+        .replace(/(['"])?([a-zA-Z0-9_]+)(['"])?:/g, '"$2":')
+      return JSON.parse(cleaned)
+    } catch (retryError) {
+      console.error('Retry parse also failed')
+      return []
+    }
+  }
 }
 
 app.post('/api/analyze', upload.single('file'), async (req, res) => {

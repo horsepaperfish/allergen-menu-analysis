@@ -39,8 +39,8 @@
 
 .filter-tab {
   padding: 10px 18px;
-  background: white;
-  border: 2px solid #fef3c7;
+  background: #fef3c7;
+  border: 2px solid #fde68a;
   border-bottom-width: 3px;
   border-radius: 8px;
   color: #1f2937;
@@ -51,18 +51,22 @@
 }
 
 .filter-tab:hover {
-  background: #fef3c7;
-  border-color: #fde68a;
+  background: #fde68a;
+  border-color: #fbbf24;
+  transform: translateY(-2px);
 }
 
 .filter-tab.active {
-  background: #fef3c7;
+  background: #fac739;
+  border-color: #ca8a04;
   border-bottom-width: 3px;
-  font-weight: 600;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(234, 179, 8, 0.3);
 }
 
 .results-grid {
   display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 20px;
 }
 
@@ -73,6 +77,9 @@
   border: 1px solid #fef3c7;
   box-shadow: 0 1px 3px rgba(245, 158, 11, 0.1);
   transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  min-height: 280px;
 }
 
 .menu-item-card:hover {
@@ -90,17 +97,59 @@
 .allergen-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 12px;
   margin-bottom: 12px;
 }
 
+.allergen-tag-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .allergen-tag {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   padding: 6px 14px;
   border-radius: 6px;
   color: white;
   font-size: 14px;
   font-weight: 500;
+}
+
+.level-badge {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.allergen-tag.level-trace {
+  opacity: 0.7;
+  border: 2px dashed rgba(255, 255, 255, 0.5);
+}
+
+.allergen-tag.level-minor {
+  opacity: 0.85;
+}
+
+.allergen-tag.level-moderate {
+  opacity: 0.95;
+}
+
+.allergen-tag.level-major {
+  opacity: 1;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.allergen-note {
+  font-size: 12px;
+  color: #6b7280;
+  font-style: italic;
+  margin-left: 4px;
 }
 
 .no-allergens {
@@ -111,10 +160,23 @@
 }
 
 .item-description {
-  color: #6b7280;
+  color: #374151;
   font-size: 14px;
   margin: 12px 0 0 0;
   line-height: 1.6;
+  font-weight: 500;
+  background: #fef3c7;
+  padding: 10px 12px;
+  border-radius: 6px;
+  border-left: 3px solid #f59e0b;
+}
+
+.dish-info {
+  color: #6b7280;
+  font-size: 13px;
+  margin: 8px 0 0 0;
+  line-height: 1.5;
+  font-style: italic;
 }
 
 @media (max-width: 768px) {
