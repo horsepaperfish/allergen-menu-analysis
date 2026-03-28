@@ -1,7 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk'
 import Tesseract from 'tesseract.js'
-import formidable from 'formidable'
-import fs from 'fs'
+import busboy from 'busboy'
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -83,6 +82,45 @@ Return ONLY the JSON array. The description field MUST contain concentration inf
   }
 }
 
+function parseMultipartForm(req) {
+  return new Promise((resolve, reject) => {
+    const bb = busboy({ headers: req.headers })
+    const result = { fields: {}, files: [] }
+
+    bb.on('file', (fieldname, file, info) => {
+      const { filename, encoding, mimeType } = info
+      const chunks = []
+
+      file.on('data', (data) => {
+        chunks.push(data)
+      })
+
+      file.on('end', () => {
+        result.files.push({
+          fieldname,
+          originalFilename: filename,
+          mimetype: mimeType,
+          buffer: Buffer.concat(chunks)
+        })
+      })
+    })
+
+    bb.on('field', (fieldname, value) => {
+      result.fields[fieldname] = value
+    })
+
+    bb.on('finish', () => {
+      resolve(result)
+    })
+
+    bb.on('error', (error) => {
+      reject(error)
+    })
+
+    req.pipe(bb)
+  })
+}
+
 export const config = {
   api: {
     bodyParser: false,
@@ -105,33 +143,24 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  let tempFilePath = null
-
   try {
     console.log('Starting file upload parsing...')
 
-    const form = formidable({
-      maxFileSize: 10 * 1024 * 1024, // 10MB
-    })
+    const { fields, files } = await parseMultipartForm(req)
 
-    const [fields, files] = await form.parse(req)
+    console.log('Files parsed:', files.length)
 
-    console.log('Files parsed:', Object.keys(files))
-
-    const file = files.file?.[0]
+    const file = files[0]
 
     if (!file) {
       console.error('No file found in upload')
       return res.status(400).json({ error: 'No file uploaded' })
     }
 
-    tempFilePath = file.filepath
     console.log(`Processing file: ${file.originalFilename} (${file.mimetype})`)
+    console.log(`Buffer size: ${file.buffer.length}`)
 
-    const buffer = await fs.promises.readFile(file.filepath)
-    console.log(`Buffer size: ${buffer.length}`)
-
-    const menuText = await extractTextFromBuffer(buffer, file.mimetype)
+    const menuText = await extractTextFromBuffer(file.buffer, file.mimetype)
 
     if (!menuText || menuText.trim().length === 0) {
       console.error('No text extracted from file')
@@ -150,14 +179,5 @@ export default async function handler(req, res) {
       error: 'Failed to analyze menu',
       details: error.message
     })
-  } finally {
-    // Clean up temp file
-    if (tempFilePath) {
-      try {
-        await fs.promises.unlink(tempFilePath)
-      } catch (cleanupError) {
-        console.error('Failed to cleanup temp file:', cleanupError)
-      }
-    }
   }
 }
