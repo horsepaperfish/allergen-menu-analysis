@@ -1,7 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk'
 import Tesseract from 'tesseract.js'
-import multiparty from 'multiparty'
-import { Buffer } from 'buffer'
+import formidable from 'formidable'
+import fs from 'fs'
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -9,15 +9,16 @@ const anthropic = new Anthropic({
 
 async function extractTextFromBuffer(buffer, mimeType) {
   if (mimeType === 'application/pdf') {
-    // For Vercel, we'll need to handle PDF differently or skip it for now
-    throw new Error('PDF parsing not supported in serverless environment yet. Please use images or text files.')
+    throw new Error('PDF parsing not supported in serverless environment. Please use images or text files.')
   } else if (mimeType.startsWith('image/')) {
-    const { data: { text } } = await Tesseract.recognize(buffer, 'eng')
+    const { data: { text } } = await Tesseract.recognize(buffer, 'eng', {
+      logger: m => console.log(m)
+    })
     return text
   } else if (mimeType === 'text/plain') {
     return buffer.toString('utf-8')
   } else {
-    throw new Error('Unsupported file type')
+    throw new Error(`Unsupported file type: ${mimeType}`)
   }
 }
 
@@ -104,31 +105,36 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  try {
-    const form = new multiparty.Form()
+  let tempFilePath = null
 
-    const { fields, files } = await new Promise((resolve, reject) => {
-      form.parse(req, (err, fields, files) => {
-        if (err) reject(err)
-        else resolve({ fields, files })
-      })
+  try {
+    console.log('Starting file upload parsing...')
+
+    const form = formidable({
+      maxFileSize: 10 * 1024 * 1024, // 10MB
     })
+
+    const [fields, files] = await form.parse(req)
+
+    console.log('Files parsed:', Object.keys(files))
 
     const file = files.file?.[0]
 
     if (!file) {
+      console.error('No file found in upload')
       return res.status(400).json({ error: 'No file uploaded' })
     }
 
-    console.log(`Processing file: ${file.originalFilename} (${file.headers['content-type']})`)
+    tempFilePath = file.filepath
+    console.log(`Processing file: ${file.originalFilename} (${file.mimetype})`)
 
-    const buffer = await require('fs').promises.readFile(file.path)
-    const menuText = await extractTextFromBuffer(buffer, file.headers['content-type'])
+    const buffer = await fs.promises.readFile(file.filepath)
+    console.log(`Buffer size: ${buffer.length}`)
 
-    // Clean up temp file
-    await require('fs').promises.unlink(file.path).catch(() => {})
+    const menuText = await extractTextFromBuffer(buffer, file.mimetype)
 
     if (!menuText || menuText.trim().length === 0) {
+      console.error('No text extracted from file')
       return res.status(400).json({ error: 'Could not extract text from file' })
     }
 
@@ -139,9 +145,19 @@ export default async function handler(req, res) {
     res.status(200).json({ allergens: allergenData })
   } catch (error) {
     console.error('Error analyzing menu:', error)
+    console.error('Error stack:', error.stack)
     res.status(500).json({
       error: 'Failed to analyze menu',
       details: error.message
     })
+  } finally {
+    // Clean up temp file
+    if (tempFilePath) {
+      try {
+        await fs.promises.unlink(tempFilePath)
+      } catch (cleanupError) {
+        console.error('Failed to cleanup temp file:', cleanupError)
+      }
+    }
   }
 }
