@@ -1,31 +1,21 @@
 import Anthropic from '@anthropic-ai/sdk'
 import Tesseract from 'tesseract.js'
-import { createRequire } from 'module'
-
-const require = createRequire(import.meta.url)
-const { PDFParse } = require('pdf-parse')
+import multiparty from 'multiparty'
+import { Buffer } from 'buffer'
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 })
 
-async function extractTextFromFile(file) {
-  const mimeType = file.type
-
+async function extractTextFromBuffer(buffer, mimeType) {
   if (mimeType === 'application/pdf') {
-    const arrayBuffer = await file.arrayBuffer()
-    const buffer = Buffer.from(arrayBuffer)
-    const parser = new PDFParse({ data: buffer })
-    const result = await parser.getText()
-    await parser.destroy()
-    return result.text
+    // For Vercel, we'll need to handle PDF differently or skip it for now
+    throw new Error('PDF parsing not supported in serverless environment yet. Please use images or text files.')
   } else if (mimeType.startsWith('image/')) {
-    const arrayBuffer = await file.arrayBuffer()
-    const buffer = Buffer.from(arrayBuffer)
     const { data: { text } } = await Tesseract.recognize(buffer, 'eng')
     return text
   } else if (mimeType === 'text/plain') {
-    return await file.text()
+    return buffer.toString('utf-8')
   } else {
     throw new Error('Unsupported file type')
   }
@@ -92,6 +82,12 @@ Return ONLY the JSON array. The description field MUST contain concentration inf
   }
 }
 
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+}
+
 export default async function handler(req, res) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Credentials', 'true')
@@ -109,23 +105,28 @@ export default async function handler(req, res) {
   }
 
   try {
-    const contentType = req.headers['content-type'] || ''
+    const form = new multiparty.Form()
 
-    if (!contentType.includes('multipart/form-data')) {
-      return res.status(400).json({ error: 'Content-Type must be multipart/form-data' })
-    }
+    const { fields, files } = await new Promise((resolve, reject) => {
+      form.parse(req, (err, fields, files) => {
+        if (err) reject(err)
+        else resolve({ fields, files })
+      })
+    })
 
-    // Parse multipart form data
-    const formData = await parseMultipartForm(req)
-    const file = formData.file
+    const file = files.file?.[0]
 
     if (!file) {
       return res.status(400).json({ error: 'No file uploaded' })
     }
 
-    console.log(`Processing file: ${file.name} (${file.type})`)
+    console.log(`Processing file: ${file.originalFilename} (${file.headers['content-type']})`)
 
-    const menuText = await extractTextFromFile(file)
+    const buffer = await require('fs').promises.readFile(file.path)
+    const menuText = await extractTextFromBuffer(buffer, file.headers['content-type'])
+
+    // Clean up temp file
+    await require('fs').promises.unlink(file.path).catch(() => {})
 
     if (!menuText || menuText.trim().length === 0) {
       return res.status(400).json({ error: 'Could not extract text from file' })
@@ -143,52 +144,4 @@ export default async function handler(req, res) {
       details: error.message
     })
   }
-}
-
-async function parseMultipartForm(req) {
-  return new Promise((resolve, reject) => {
-    const boundary = req.headers['content-type'].split('boundary=')[1]
-    let data = Buffer.alloc(0)
-
-    req.on('data', chunk => {
-      data = Buffer.concat([data, chunk])
-    })
-
-    req.on('end', () => {
-      try {
-        const parts = data.toString('binary').split(`--${boundary}`)
-
-        for (const part of parts) {
-          if (part.includes('Content-Disposition: form-data; name="file"')) {
-            const nameMatch = part.match(/filename="([^"]+)"/)
-            const typeMatch = part.match(/Content-Type: ([^\r\n]+)/)
-
-            if (nameMatch && typeMatch) {
-              const headerEnd = part.indexOf('\r\n\r\n') + 4
-              const fileData = part.substring(headerEnd, part.lastIndexOf('\r\n'))
-
-              const file = {
-                name: nameMatch[1],
-                type: typeMatch[1],
-                arrayBuffer: async () => {
-                  const buffer = Buffer.from(fileData, 'binary')
-                  return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength)
-                },
-                text: async () => Buffer.from(fileData, 'binary').toString('utf-8')
-              }
-
-              resolve({ file })
-              return
-            }
-          }
-        }
-
-        resolve({})
-      } catch (error) {
-        reject(error)
-      }
-    })
-
-    req.on('error', reject)
-  })
 }
