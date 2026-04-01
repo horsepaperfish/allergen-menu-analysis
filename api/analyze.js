@@ -1,6 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk'
 import busboy from 'busboy'
-import { getTextExtractor } from 'unpdf'
+import { extractText, getDocumentProxy } from 'unpdf'
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -229,8 +229,8 @@ export default async function handler(req, res) {
     } else if (file.mimetype === 'application/pdf') {
       // Extract text from PDF and analyze using unpdf (serverless-compatible)
       console.log('Parsing PDF...')
-      const extractText = await getTextExtractor()
-      const text = await extractText(file.buffer)
+      const pdf = await getDocumentProxy(new Uint8Array(file.buffer))
+      const { text } = await extractText(pdf, { mergePages: true })
       console.log('PDF parsed successfully, text length:', text.length)
       allergenData = await analyzeMenuWithClaude(text)
     } else {
