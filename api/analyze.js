@@ -1,6 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk'
 import busboy from 'busboy'
-import pdfParse from 'pdf-parse'
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -229,6 +228,7 @@ export default async function handler(req, res) {
     } else if (file.mimetype === 'application/pdf') {
       // Extract text from PDF and analyze
       console.log('Parsing PDF...')
+      const pdfParse = (await import('pdf-parse')).default
       const pdfData = await pdfParse(file.buffer)
       console.log('PDF parsed successfully, text length:', pdfData.text.length)
       allergenData = await analyzeMenuWithClaude(pdfData.text)
