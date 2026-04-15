@@ -7,32 +7,59 @@ function App() {
   const [analyzing, setAnalyzing] = useState(false)
   const [results, setResults] = useState(null)
   const [error, setError] = useState(null)
+  const [progress, setProgress] = useState({ current: 0, total: 0 })
 
-  const handleFileUpload = async (file) => {
+  const handleFileUpload = async (files) => {
     setAnalyzing(true)
     setError(null)
     setResults(null)
+    setProgress({ current: 0, total: files.length })
 
     try {
-      const formData = new FormData()
-      formData.append('file', file)
+      // Process all files
+      const allAllergens = []
+      const errors = []
 
-      const response = await fetch('/api/analyze', {
-        method: 'POST',
-        body: formData,
-      })
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i]
+        setProgress({ current: i + 1, total: files.length })
 
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to analyze menu')
+        try {
+          const formData = new FormData()
+          formData.append('file', file)
+
+          const response = await fetch('/api/analyze', {
+            method: 'POST',
+            body: formData,
+          })
+
+          if (!response.ok) {
+            const errorData = await response.json()
+            errors.push(`${file.name}: ${errorData.error || 'Failed to analyze'}`)
+            continue
+          }
+
+          const data = await response.json()
+          allAllergens.push(...data.allergens)
+        } catch (err) {
+          errors.push(`${file.name}: ${err.message}`)
+        }
       }
 
-      const data = await response.json()
-      setResults(data.allergens)
+      if (errors.length > 0 && allAllergens.length === 0) {
+        throw new Error(errors.join(', '))
+      }
+
+      if (errors.length > 0) {
+        setError(`Some files failed: ${errors.join(', ')}`)
+      }
+
+      setResults(allAllergens)
     } catch (err) {
       setError(err.message)
     } finally {
       setAnalyzing(false)
+      setProgress({ current: 0, total: 0 })
     }
   }
 
@@ -54,7 +81,10 @@ function App() {
           {analyzing && (
             <div className="analyzing">
               <div className="spinner"></div>
-              <p>Analyzing menu for allergens...</p>
+              <p>
+                Analyzing menu for allergens...
+                {progress.total > 1 && ` (${progress.current}/${progress.total})`}
+              </p>
             </div>
           )}
 

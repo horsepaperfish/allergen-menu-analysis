@@ -35,3 +35,4 @@ concentration of each  allergen. like for
 example, house made chips  may have mustard, but how 
 much mustard? a percentage showing for example,  "only mustard in sauce" or "70-80% mustard, high 
 concentration" may be helpful, as for example, some people have lactose intolerances, but are not severe allergies. 
+- I want to make somme changes to the homescreen. The "select from gallery" and upload a file serves the same functionality i feel. Could we merge the "select from gallery button" into the "upload a file"? Also, we should allow users to upload multiple photos in one go, not just select one photo from their gallery. 

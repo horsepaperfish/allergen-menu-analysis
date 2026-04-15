@@ -4,7 +4,6 @@ import './FileUpload.css'
 function FileUpload({ onFileSelect }) {
   const [isDragging, setIsDragging] = useState(false)
   const cameraInputRef = useRef(null)
-  const galleryInputRef = useRef(null)
   const fileInputRef = useRef(null)
 
   const handleDragOver = (e) => {
@@ -21,25 +20,21 @@ function FileUpload({ onFileSelect }) {
     e.preventDefault()
     setIsDragging(false)
 
-    const files = e.dataTransfer.files
+    const files = Array.from(e.dataTransfer.files)
     if (files.length > 0) {
-      onFileSelect(files[0])
+      onFileSelect(files)
     }
   }
 
   const handleFileChange = (e) => {
-    const files = e.target.files
+    const files = Array.from(e.target.files)
     if (files.length > 0) {
-      onFileSelect(files[0])
+      onFileSelect(files)
     }
   }
 
   const handleCameraClick = () => {
     cameraInputRef.current?.click()
-  }
-
-  const handleGalleryClick = () => {
-    galleryInputRef.current?.click()
   }
 
   const handleBoxClick = () => {
@@ -57,16 +52,10 @@ function FileUpload({ onFileSelect }) {
         style={{ display: 'none' }}
       />
       <input
-        ref={galleryInputRef}
-        type="file"
-        accept=".pdf,.txt,.png,.jpg,.jpeg,image/*"
-        onChange={handleFileChange}
-        style={{ display: 'none' }}
-      />
-      <input
         ref={fileInputRef}
         type="file"
         accept=".pdf,.txt,.png,.jpg,.jpeg,image/*"
+        multiple
         onChange={handleFileChange}
         style={{ display: 'none' }}
       />
@@ -78,15 +67,6 @@ function FileUpload({ onFileSelect }) {
             <circle cx="12" cy="13" r="4" />
           </svg>
           Take Photo
-        </button>
-
-        <button className="upload-btn gallery-btn" onClick={handleGalleryClick}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-            <circle cx="8.5" cy="8.5" r="1.5" />
-            <polyline points="21 15 16 10 5 21" />
-          </svg>
-          Select from Gallery
         </button>
       </div>
 
@@ -107,9 +87,9 @@ function FileUpload({ onFileSelect }) {
           </svg>
         </div>
 
-        <h2>Upload a File</h2>
-        <p className="drag-text">Drag and drop a file here or click to browse</p>
-        <p className="file-types">Supports PDF, TXT, PNG, JPG</p>
+        <h2>Upload Files</h2>
+        <p className="drag-text">Drag and drop files here or click to browse</p>
+        <p className="file-types">Supports PDF, TXT, PNG, JPG (multiple files allowed)</p>
       </div>
     </div>
   )
