@@ -85,6 +85,17 @@ function App() {
                 Analyzing menu for allergens...
                 {progress.total > 1 && ` (${progress.current}/${progress.total})`}
               </p>
+              {progress.total > 0 && (
+                <div className="progress-container">
+                  <div
+                    className="progress-bar"
+                    style={{ width: `${(progress.current / progress.total) * 100}%` }}
+                  ></div>
+                  <div className="progress-text">
+                    {Math.round((progress.current / progress.total) * 100)}%
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
