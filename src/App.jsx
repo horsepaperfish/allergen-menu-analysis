@@ -22,7 +22,15 @@ function App() {
 
       for (let i = 0; i < files.length; i++) {
         const file = files[i]
-        setProgress({ current: i + 1, total: files.length })
+
+        // Simulate gradual progress during file processing
+        let simulatedProgress = 0
+        const progressInterval = setInterval(() => {
+          simulatedProgress += 0.5
+          if (simulatedProgress < 95) {
+            setProgress({ current: i + (simulatedProgress / 100), total: files.length })
+          }
+        }, 100)
 
         try {
           const formData = new FormData()
@@ -33,6 +41,8 @@ function App() {
             body: formData,
           })
 
+          clearInterval(progressInterval)
+
           if (!response.ok) {
             const errorData = await response.json()
             errors.push(`${file.name}: ${errorData.error || 'Failed to analyze'}`)
@@ -41,7 +51,11 @@ function App() {
 
           const data = await response.json()
           allAllergens.push(...data.allergens)
+
+          // Set to completed for this file
+          setProgress({ current: i + 1, total: files.length })
         } catch (err) {
+          clearInterval(progressInterval)
           errors.push(`${file.name}: ${err.message}`)
         }
       }
