@@ -1,13 +1,21 @@
 import { useState } from 'react'
 import './App.css'
+import AllergenSelector from './components/AllergenSelector'
 import FileUpload from './components/FileUpload'
 import AllergenResults from './components/AllergenResults'
 
 function App() {
+  const [step, setStep] = useState('select') // 'select', 'upload', 'results'
+  const [selectedAllergens, setSelectedAllergens] = useState([])
   const [analyzing, setAnalyzing] = useState(false)
   const [results, setResults] = useState(null)
   const [error, setError] = useState(null)
   const [progress, setProgress] = useState({ current: 0, total: 0 })
+
+  const handleAllergenSelection = (allergens) => {
+    setSelectedAllergens(allergens)
+    setStep('upload')
+  }
 
   const handleFileUpload = async (files) => {
     setAnalyzing(true)
@@ -35,6 +43,7 @@ function App() {
         try {
           const formData = new FormData()
           formData.append('file', file)
+          formData.append('allergens', JSON.stringify(selectedAllergens))
 
           const response = await fetch('/api/analyze', {
             method: 'POST',
@@ -69,6 +78,7 @@ function App() {
       }
 
       setResults(allAllergens)
+      setStep('results')
     } catch (err) {
       setError(err.message)
     } finally {
@@ -77,55 +87,145 @@ function App() {
     }
   }
 
+  const handleTextAnalyze = async (menuText) => {
+    setAnalyzing(true)
+    setError(null)
+    setResults(null)
+    setProgress({ current: 0, total: 1 })
+
+    // Simulate gradual progress
+    let simulatedProgress = 0
+    const progressInterval = setInterval(() => {
+      simulatedProgress += 0.5
+      if (simulatedProgress < 95) {
+        setProgress({ current: simulatedProgress / 100, total: 1 })
+      }
+    }, 100)
+
+    try {
+      const response = await fetch('/api/analyze-text', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          menuText,
+          allergens: selectedAllergens,
+        }),
+      })
+
+      clearInterval(progressInterval)
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to analyze menu')
+      }
+
+      const data = await response.json()
+      setResults(data.allergens)
+      setProgress({ current: 1, total: 1 })
+      setStep('results')
+    } catch (err) {
+      clearInterval(progressInterval)
+      setError(err.message)
+    } finally {
+      setAnalyzing(false)
+      setProgress({ current: 0, total: 0 })
+    }
+  }
+
+  const handleReset = () => {
+    setResults(null)
+    setError(null)
+    setStep('upload')
+  }
+
+  const handleChangeAllergens = () => {
+    setResults(null)
+    setError(null)
+    setStep('select')
+  }
+
   return (
     <div className="app">
       <div className="floating-circle"></div>
 
       <div className="content">
-        <header>
-          <h1>Allergen Menu Analyzer</h1>
-          <p className="subtitle">Upload a food menu to identify potential allergens</p>
-        </header>
+        {step === 'select' && (
+          <AllergenSelector onContinue={handleAllergenSelection} />
+        )}
 
-        <main>
-          {!results && !analyzing && (
-            <FileUpload onFileSelect={handleFileUpload} />
-          )}
+        {step === 'upload' && (
+          <>
+            <header>
+              <div className="logo-circle">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                  <path d="M9 12l2 2 4-4" />
+                </svg>
+              </div>
+              <h1>Scan menu</h1>
+              <p className="subtitle">Upload or paste the menu to analyze</p>
+            </header>
 
-          {analyzing && (
-            <div className="analyzing">
-              <div className="spinner"></div>
-              <p>Analyzing menu for allergens...</p>
-              {progress.total > 0 && (
-                <div className="progress-container">
-                  <div
-                    className="progress-bar"
-                    style={{ width: `${(progress.current / progress.total) * 100}%` }}
-                  ></div>
-                  <div className="progress-text">
-                    {Math.round((progress.current / progress.total) * 100)}%
-                  </div>
+            <main>
+              {!analyzing && (
+                <FileUpload
+                  onFileSelect={handleFileUpload}
+                  onTextAnalyze={handleTextAnalyze}
+                  selectedAllergens={selectedAllergens}
+                  onEditAllergens={handleChangeAllergens}
+                />
+              )}
+
+              {analyzing && (
+                <div className="analyzing">
+                  <div className="spinner"></div>
+                  <p>Analyzing menu for allergens...</p>
+                  {progress.total > 0 && (
+                    <div className="progress-container">
+                      <div
+                        className="progress-bar"
+                        style={{ width: `${(progress.current / progress.total) * 100}%` }}
+                      ></div>
+                      <div className="progress-text">
+                        {Math.round((progress.current / progress.total) * 100)}%
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
-            </div>
-          )}
 
-          {error && (
-            <div className="error">
-              <p>{error}</p>
-              <button onClick={() => setError(null)}>Try Again</button>
-            </div>
-          )}
+              {error && (
+                <div className="error">
+                  <p>{error}</p>
+                  <button onClick={() => setError(null)}>Try Again</button>
+                </div>
+              )}
+            </main>
+          </>
+        )}
 
-          {results && !analyzing && (
-            <>
+        {step === 'results' && (
+          <>
+            <header>
+              <h1>Allergen Menu Analyzer</h1>
+              <p className="subtitle">Results for your selected allergens</p>
+            </header>
+
+            <main>
               <AllergenResults results={results} />
-              <button className="reset-btn" onClick={() => setResults(null)}>
-                Analyze Another Menu
-              </button>
-            </>
-          )}
-        </main>
+              <div className="results-actions">
+                <button className="reset-btn" onClick={handleReset}>
+                  Analyze Another Menu
+                </button>
+                <button className="change-allergens-btn" onClick={handleChangeAllergens}>
+                  Change Allergens
+                </button>
+              </div>
+            </main>
+          </>
+        )}
       </div>
     </div>
   )

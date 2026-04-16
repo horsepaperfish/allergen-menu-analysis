@@ -1,59 +1,61 @@
 .upload-container {
   width: 100%;
-  max-width: 500px;
+  max-width: 700px;
   text-align: center;
 }
 
-.upload-options {
-  display: flex;
-  gap: 16px;
-  justify-content: center;
-  margin-bottom: 24px;
-  width: 100%;
-}
-
-.upload-btn {
+.screening-section {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 14px 24px;
-  background: #fbbf24;
-  border: 2px solid #f59e0b;
-  border-radius: 10px;
-  color: #1f2937;
+  gap: 12px;
+  margin-bottom: 40px;
+  flex-wrap: wrap;
+}
+
+.screening-label {
   font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.screening-chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
   flex: 1;
 }
 
-.upload-btn:hover {
-  background: #f59e0b;
-  border-color: #d97706;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
-}
-
-.upload-btn:active {
-  transform: translateY(0);
-}
-
-.upload-btn svg {
-  flex-shrink: 0;
-}
-
-.or-divider {
-  color: #9ca3af;
-  font-size: 16px;
+.screening-chip {
+  padding: 8px 16px;
+  background: white;
+  border: 2px solid #ddd6fe;
+  border-radius: 20px;
+  color: #5b21b6;
+  font-size: 14px;
   font-weight: 500;
-  margin: 0 0 24px 0;
+}
+
+.edit-btn {
+  padding: 8px 20px;
+  background: transparent;
+  border: 2px solid #f59e0b;
+  border-radius: 8px;
+  color: #f59e0b;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-left: auto;
+}
+
+.edit-btn:hover {
+  background: #f59e0b;
+  color: white;
 }
 
 .file-upload {
   width: 100%;
-  padding: 50px 40px;
+  padding: 60px 40px;
   border: 3px dashed #fde68a;
   border-radius: 16px;
   background: white;
@@ -83,52 +85,117 @@
 }
 
 .file-upload h2 {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 600;
   color: #1f2937;
-  margin: 0 0 12px 0;
-}
-
-.drag-text {
-  color: #6b7280;
-  font-size: 15px;
   margin: 0 0 8px 0;
 }
 
 .file-types {
   font-size: 14px;
   color: #9ca3af;
+  margin: 0;
+}
+
+.or-divider {
+  color: #9ca3af;
+  font-size: 16px;
+  font-weight: 500;
+  margin: 30px 0;
+}
+
+.paste-area {
+  width: 100%;
+  min-height: 150px;
+  padding: 20px;
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  font-size: 15px;
+  color: #1f2937;
+  resize: vertical;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.paste-area::placeholder {
+  color: #9ca3af;
+}
+
+.paste-area:focus {
+  outline: none;
+  border-color: #fbbf24;
+  background: #fffbeb;
+}
+
+.analyze-btn {
+  width: 100%;
+  padding: 16px;
+  background: #fbbf24;
+  border: 2px solid #f59e0b;
+  border-radius: 12px;
+  color: #1f2937;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 30px;
+}
+
+.analyze-btn:hover {
+  background: #f59e0b;
+  border-color: #d97706;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.analyze-btn:active {
+  transform: translateY(0);
+}
+
+.analyze-btn.disabled,
+.analyze-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.analyze-btn:disabled:hover {
+  background: #fbbf24;
+  border-color: #f59e0b;
+  transform: none;
+  box-shadow: none;
 }
 
 @media (max-width: 768px) {
-  .upload-options {
-    flex-direction: column;
-    gap: 12px;
-    margin-bottom: 20px;
+  .upload-container {
+    padding: 0 15px;
   }
 
-  .upload-btn {
-    width: 100%;
-    justify-content: center;
-    padding: 12px 20px;
+  .screening-section {
+    margin-bottom: 30px;
+  }
+
+  .screening-label {
     font-size: 15px;
   }
 
-  .or-divider {
-    font-size: 15px;
-    margin-bottom: 20px;
+  .screening-chip {
+    padding: 6px 14px;
+    font-size: 13px;
+  }
+
+  .edit-btn {
+    padding: 6px 16px;
+    font-size: 13px;
   }
 
   .file-upload {
-    padding: 35px 25px;
+    padding: 40px 25px;
   }
 
   .file-upload h2 {
-    font-size: 19px;
-  }
-
-  .drag-text {
-    font-size: 14px;
+    font-size: 18px;
   }
 
   .file-types {
@@ -138,5 +205,16 @@
   .upload-icon svg {
     width: 40px;
     height: 40px;
+  }
+
+  .paste-area {
+    min-height: 120px;
+    padding: 16px;
+    font-size: 14px;
+  }
+
+  .analyze-btn {
+    padding: 14px;
+    font-size: 16px;
   }
 }

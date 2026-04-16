@@ -26,8 +26,12 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 })
 
-async function analyzeImageDirectly(buffer, mimeType) {
+async function analyzeImageDirectly(buffer, mimeType, selectedAllergens = []) {
   const base64Image = buffer.toString('base64')
+
+  const allergenList = selectedAllergens.length > 0
+    ? selectedAllergens.join(', ')
+    : 'Dairy, Eggs, Fish, Shellfish, Tree Nuts, Peanuts, Wheat, Soy, Gluten, Sesame, Corn, Mustard, Celery, Lupin, Molluscs, Sulfites'
 
   const message = await anthropic.messages.create({
     model: 'claude-3-haiku-20240307',
@@ -46,11 +50,13 @@ async function analyzeImageDirectly(buffer, mimeType) {
           },
           {
             type: 'text',
-            text: `Analyze this food menu image and identify allergens in each item.
+            text: `Analyze this food menu image and identify which items contain these specific allergens: ${allergenList}
 
-For EACH item, you MUST include:
+ONLY show items that contain at least one of these allergens. Do NOT show items that are safe.
+
+For EACH item that contains allergens, you MUST include:
 1. The item name
-2. List of allergens from: Dairy, Eggs, Fish, Shellfish, Tree Nuts, Peanuts, Wheat, Soy, Gluten, Sesame, Corn, Mustard, Celery, Lupin, Molluscs, Sulfites
+2. List of allergens (ONLY from this list: ${allergenList})
 3. Allergen concentration info (e.g. "Dairy: major (cheese is primary ingredient), Wheat: minor (in sauce)")
 4. What the dish actually is (e.g. "Grilled chicken sandwich with lettuce and tomato")
 
@@ -98,18 +104,24 @@ Return ONLY the JSON array. The description field MUST contain concentration inf
   }
 }
 
-async function analyzeMenuWithClaude(menuText) {
+async function analyzeMenuWithClaude(menuText, selectedAllergens = []) {
+  const allergenList = selectedAllergens.length > 0
+    ? selectedAllergens.join(', ')
+    : 'Dairy, Eggs, Fish, Shellfish, Tree Nuts, Peanuts, Wheat, Soy, Gluten, Sesame, Corn, Mustard, Celery, Lupin, Molluscs, Sulfites'
+
   const message = await anthropic.messages.create({
     model: 'claude-3-haiku-20240307',
     max_tokens: 4096,
     messages: [
       {
         role: 'user',
-        content: `Analyze the following food menu and identify allergens in each item.
+        content: `Analyze the following food menu and identify which items contain these specific allergens: ${allergenList}
 
-For EACH item, you MUST include:
+ONLY show items that contain at least one of these allergens. Do NOT show items that are safe.
+
+For EACH item that contains allergens, you MUST include:
 1. The item name
-2. List of allergens from: Dairy, Eggs, Fish, Shellfish, Tree Nuts, Peanuts, Wheat, Soy, Gluten, Sesame, Corn, Mustard, Celery, Lupin, Molluscs, Sulfites
+2. List of allergens (ONLY from this list: ${allergenList})
 3. Allergen concentration info (e.g. "Dairy: major (cheese is primary ingredient), Wheat: minor (in sauce)")
 4. What the dish actually is (e.g. "Grilled chicken sandwich with lettuce and tomato")
 
@@ -160,6 +172,29 @@ Return ONLY the JSON array. The description field MUST contain concentration inf
   }
 }
 
+app.post('/api/analyze-text', async (req, res) => {
+  try {
+    const { menuText, allergens } = req.body
+
+    if (!menuText) {
+      return res.status(400).json({ error: 'No menu text provided' })
+    }
+
+    console.log('Analyzing menu text, length:', menuText.length)
+    console.log('Selected allergens:', allergens)
+
+    const allergenData = await analyzeMenuWithClaude(menuText, allergens || [])
+
+    res.json({ allergens: allergenData })
+  } catch (error) {
+    console.error('Error analyzing menu:', error)
+    res.status(500).json({
+      error: 'Failed to analyze menu',
+      details: error.message
+    })
+  }
+})
+
 app.post('/api/analyze', upload.single('file'), async (req, res) => {
   try {
     if (!req.file) {
@@ -168,21 +203,33 @@ app.post('/api/analyze', upload.single('file'), async (req, res) => {
 
     console.log(`Processing file: ${req.file.originalname} (${req.file.mimetype})`)
 
+    // Parse selected allergens from form data
+    let selectedAllergens = []
+    if (req.body.allergens) {
+      try {
+        selectedAllergens = JSON.parse(req.body.allergens)
+      } catch (e) {
+        console.error('Failed to parse allergens:', e)
+      }
+    }
+
+    console.log('Selected allergens:', selectedAllergens)
+
     let allergenData
 
     if (req.file.mimetype.startsWith('image/')) {
       // Use Claude's vision API for images
-      allergenData = await analyzeImageDirectly(req.file.buffer, req.file.mimetype)
+      allergenData = await analyzeImageDirectly(req.file.buffer, req.file.mimetype, selectedAllergens)
     } else if (req.file.mimetype === 'text/plain') {
       // Use text analysis for plain text
       const menuText = req.file.buffer.toString('utf-8')
-      allergenData = await analyzeMenuWithClaude(menuText)
+      allergenData = await analyzeMenuWithClaude(menuText, selectedAllergens)
     } else if (req.file.mimetype === 'application/pdf') {
       // PDF still supported locally
       const parser = new PDFParse({ data: req.file.buffer })
       const result = await parser.getText()
       await parser.destroy()
-      allergenData = await analyzeMenuWithClaude(result.text)
+      allergenData = await analyzeMenuWithClaude(result.text, selectedAllergens)
     } else {
       return res.status(400).json({ error: 'Unsupported file type' })
     }

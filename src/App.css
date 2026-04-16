@@ -49,6 +49,22 @@ header {
   margin-bottom: 60px;
 }
 
+.logo-circle {
+  width: 80px;
+  height: 80px;
+  background: white;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.logo-circle svg {
+  color: #6366f1;
+}
+
 h1 {
   font-size: 48px;
   font-weight: 700;
@@ -59,7 +75,32 @@ h1 {
 .subtitle {
   font-size: 18px;
   color: #6b7280;
-  margin: 0;
+  margin: 0 0 20px 0;
+}
+
+.change-allergens-btn {
+  background: transparent;
+  color: #f59e0b;
+  border: 2px solid #f59e0b;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.change-allergens-btn:hover {
+  background: #f59e0b;
+  color: white;
+}
+
+.results-actions {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin-top: 20px;
+  flex-wrap: wrap;
 }
 
 main {
