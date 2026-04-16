@@ -1,113 +1,167 @@
 import { useState, useMemo } from 'react'
 import './AllergenResults.css'
 
-function AllergenResults({ results }) {
-  const [selectedAllergen, setSelectedAllergen] = useState('All')
+function AllergenResults({ results, selectedAllergens, onEditAllergens, onReset }) {
+  const [activeFilter, setActiveFilter] = useState('All')
 
-  const allergenColors = {
-    'Dairy': '#f59e0b',
-    'Eggs': '#fbbf24',
-    'Fish': '#60a5fa',
-    'Shellfish': '#3b82f6',
-    'Tree Nuts': '#b45309',
-    'Peanuts': '#92400e',
-    'Wheat': '#eab308',
-    'Soy': '#a3e635',
-    'Gluten': '#facc15',
-    'Sesame': '#d97706',
-    'Corn': '#fde047',
-    'Mustard': '#fef08a',
-    'Celery': '#84cc16',
-    'Lupin': '#a78bfa',
-    'Molluscs': '#818cf8',
-    'Sulfites': '#f472b6'
-  }
+  // Categorize results
+  const categorized = useMemo(() => {
+    const safe = results.filter(item => item.category === 'safe')
+    const askStaff = results.filter(item => item.category === 'ask-staff')
+    const avoid = results.filter(item => item.category === 'avoid')
 
-  // Get all unique allergens from results
-  const allAllergens = useMemo(() => {
-    const allergenSet = new Set()
-    results.forEach(item => {
-      if (item.allergens) {
-        item.allergens.forEach(allergen => allergenSet.add(allergen))
-      }
-    })
-    return Array.from(allergenSet).sort()
+    return { safe, askStaff, avoid }
   }, [results])
 
-  // Filter results based on selected allergen
+  // Get filtered results based on active filter
   const filteredResults = useMemo(() => {
-    if (selectedAllergen === 'All') {
-      return results
+    switch (activeFilter) {
+      case 'Safe':
+        return categorized.safe
+      case 'Ask staff':
+        return categorized.askStaff
+      case 'Avoid':
+        return categorized.avoid
+      default:
+        return results
     }
-    // Show items WITHOUT the selected allergen
-    return results.filter(item =>
-      !item.allergens || !item.allergens.includes(selectedAllergen)
-    )
-  }, [results, selectedAllergen])
+  }, [activeFilter, results, categorized])
 
   return (
     <div className="allergen-results">
-      <h2>Allergen Analysis</h2>
-
-      <div className="disclaimer-warning">
-        <strong>⚠️ Important:</strong> This is an automated suggestion only. Always double check with the restaurant directly about allergens and ingredients. This tool may not detect all allergens or cross-contamination risks.
+      {/* Screening Section */}
+      <div className="screening-section">
+        <span className="screening-label">Screening for:</span>
+        <div className="screening-chips">
+          {selectedAllergens.map((allergen, index) => (
+            <span key={index} className="screening-chip">{allergen}</span>
+          ))}
+        </div>
+        <button className="edit-btn" onClick={onEditAllergens}>Edit</button>
       </div>
 
-      <div className="allergen-filters">
+      {/* Summary Counts */}
+      <div className="summary-counts">
+        <div className="count-item safe-count">
+          <div className="count-number">{categorized.safe.length}</div>
+          <div className="count-label">Safe</div>
+        </div>
+        <div className="count-item ask-count">
+          <div className="count-number">{categorized.askStaff.length}</div>
+          <div className="count-label">Ask staff</div>
+        </div>
+        <div className="count-item avoid-count">
+          <div className="count-number">{categorized.avoid.length}</div>
+          <div className="count-label">Avoid</div>
+        </div>
+      </div>
+
+      {/* Filter Tabs */}
+      <div className="filter-tabs">
         <button
-          className={`filter-tab ${selectedAllergen === 'All' ? 'active' : ''}`}
-          onClick={() => setSelectedAllergen('All')}
+          className={`filter-tab ${activeFilter === 'All' ? 'active' : ''}`}
+          onClick={() => setActiveFilter('All')}
         >
-          All Items ({results.length})
+          All ({results.length})
         </button>
-        {allAllergens.map(allergen => {
-          // Count items WITHOUT this allergen
-          const count = results.filter(item =>
-            !item.allergens || !item.allergens.includes(allergen)
-          ).length
-          return (
-            <button
-              key={allergen}
-              className={`filter-tab ${selectedAllergen === allergen ? 'active' : ''}`}
-              onClick={() => setSelectedAllergen(allergen)}
-              style={{
-                borderBottomColor: selectedAllergen === allergen ? allergenColors[allergen] : 'transparent'
-              }}
-            >
-              {allergen} ({count})
-            </button>
-          )
-        })}
+        <button
+          className={`filter-tab ${activeFilter === 'Safe' ? 'active' : ''}`}
+          onClick={() => setActiveFilter('Safe')}
+        >
+          Safe ({categorized.safe.length})
+        </button>
+        <button
+          className={`filter-tab ${activeFilter === 'Ask staff' ? 'active' : ''}`}
+          onClick={() => setActiveFilter('Ask staff')}
+        >
+          Ask staff ({categorized.askStaff.length})
+        </button>
+        <button
+          className={`filter-tab ${activeFilter === 'Avoid' ? 'active' : ''}`}
+          onClick={() => setActiveFilter('Avoid')}
+        >
+          Avoid ({categorized.avoid.length})
+        </button>
       </div>
 
-      <div className="results-grid">
-        {filteredResults.map((item, index) => (
-          <div key={index} className="menu-item-card">
-            <h3>{item.name}</h3>
-            {item.allergens && item.allergens.length > 0 ? (
-              <div className="allergen-tags">
-                {item.allergens.map((allergen, i) => (
-                  <span
-                    key={i}
-                    className="allergen-tag"
-                    style={{ backgroundColor: allergenColors[allergen] || '#64748b' }}
-                  >
-                    {allergen}
-                  </span>
-                ))}
+      {/* Results */}
+      <div className="results-container">
+        {(activeFilter === 'All' || activeFilter === 'Safe') && categorized.safe.length > 0 && (
+          <div className="results-section">
+            <h3 className="section-header safe-header">SAFE TO EAT</h3>
+            {categorized.safe.map((item, index) => (
+              <div key={index} className="menu-item safe-item">
+                <div className="item-indicator safe-indicator"></div>
+                <div className="item-content">
+                  <h4 className="item-name">{item.name}</h4>
+                  <p className="item-description">{item.description}</p>
+                  {item.tags && item.tags.length > 0 && (
+                    <div className="item-tags">
+                      {item.tags.map((tag, i) => (
+                        <span key={i} className="item-tag safe-tag">{tag}</span>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
-            ) : (
-              <p className="no-allergens">No common allergens detected</p>
-            )}
-            {item.description && (
-              <p className="item-description">{item.description}</p>
-            )}
-            {item.dishInfo && (
-              <p className="dish-info">{item.dishInfo}</p>
-            )}
+            ))}
           </div>
-        ))}
+        )}
+
+        {(activeFilter === 'All' || activeFilter === 'Ask staff') && categorized.askStaff.length > 0 && (
+          <div className="results-section">
+            <h3 className="section-header ask-header">ASK THE STAFF</h3>
+            {categorized.askStaff.map((item, index) => (
+              <div key={index} className="menu-item ask-item">
+                <div className="item-indicator ask-indicator"></div>
+                <div className="item-content">
+                  <h4 className="item-name">{item.name}</h4>
+                  <p className="item-description">{item.description}</p>
+                  {item.tags && item.tags.length > 0 && (
+                    <div className="item-tags">
+                      {item.tags.map((tag, i) => (
+                        <span key={i} className="item-tag ask-tag">{tag}</span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {(activeFilter === 'All' || activeFilter === 'Avoid') && categorized.avoid.length > 0 && (
+          <div className="results-section">
+            <h3 className="section-header avoid-header">AVOID</h3>
+            {categorized.avoid.map((item, index) => (
+              <div key={index} className="menu-item avoid-item">
+                <div className="item-indicator avoid-indicator"></div>
+                <div className="item-content">
+                  <h4 className="item-name">{item.name}</h4>
+                  <p className="item-description">{item.description}</p>
+                  {item.tags && item.tags.length > 0 && (
+                    <div className="item-tags">
+                      {item.tags.map((tag, i) => (
+                        <span key={i} className="item-tag avoid-tag">{tag}</span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
+
+      {/* Disclaimer */}
+      <div className="disclaimer">
+        This tool provides guidance only. Always confirm allergens with restaurant staff before ordering.
+      </div>
+
+      {/* Action Button */}
+      <button className="scan-another-btn" onClick={onReset}>
+        Scan another menu
+      </button>
     </div>
   )
 }

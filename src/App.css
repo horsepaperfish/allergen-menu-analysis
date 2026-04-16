@@ -78,30 +78,6 @@ h1 {
   margin: 0 0 20px 0;
 }
 
-.change-allergens-btn {
-  background: transparent;
-  color: #f59e0b;
-  border: 2px solid #f59e0b;
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-size: 15px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.change-allergens-btn:hover {
-  background: #f59e0b;
-  color: white;
-}
-
-.results-actions {
-  display: flex;
-  gap: 16px;
-  justify-content: center;
-  margin-top: 20px;
-  flex-wrap: wrap;
-}
 
 main {
   display: flex;

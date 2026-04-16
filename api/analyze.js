@@ -30,27 +30,32 @@ async function analyzeImageDirectly(buffer, mimeType, selectedAllergens = []) {
           },
           {
             type: 'text',
-            text: `Analyze this food menu image and identify which items contain these specific allergens: ${allergenList}
+            text: `Analyze this food menu image and categorize EVERY item based on these allergens: ${allergenList}
 
-ONLY show items that contain at least one of these allergens. Do NOT show items that are safe.
+Categorize each item:
+- "safe": No allergens detected, completely safe
+- "ask-staff": Uncertain or may contain allergens (cross-contamination risk, "may contain", etc.)
+- "avoid": Definitely contains one or more allergens
 
-For EACH item that contains allergens, you MUST include:
-1. The item name
-2. List of allergens (ONLY from this list: ${allergenList})
-3. Allergen concentration info (e.g. "Dairy: major (cheese is primary ingredient), Wheat: minor (in sauce)")
-4. What the dish actually is (e.g. "Grilled chicken sandwich with lettuce and tomato")
+For EACH menu item, provide:
+1. Item name
+2. Category: "safe", "ask-staff", or "avoid"
+3. Allergens found (empty array if safe)
+4. Description of the dish and ingredients
+5. For "ask-staff" items, add "— confirm" to allergen names
 
 REQUIRED JSON format:
 [
   {
     "name": "Item name",
-    "allergens": ["Allergen1", "Allergen2"],
-    "description": "Dairy: major (cheese), Wheat: minor (sauce)",
-    "dishInfo": "Grilled chicken sandwich with lettuce and tomato"
+    "category": "safe" or "ask-staff" or "avoid",
+    "allergens": ["Allergen1", "Allergen2"] or [],
+    "description": "Description of ingredients",
+    "tags": ["Tag1", "Tag2"] (e.g., "Nut free", "Peanuts — confirm", "Dairy")
   }
 ]
 
-Return ONLY the JSON array. The description field MUST contain concentration info.`
+Return ONLY the JSON array with ALL menu items categorized.`
           }
         ]
       }
@@ -95,30 +100,35 @@ async function analyzeMenuWithClaude(menuText, selectedAllergens = []) {
     messages: [
       {
         role: 'user',
-        content: `Analyze the following food menu and identify which items contain these specific allergens: ${allergenList}
+        content: `Analyze the following food menu and categorize EVERY item based on these allergens: ${allergenList}
 
-ONLY show items that contain at least one of these allergens. Do NOT show items that are safe.
+Categorize each item:
+- "safe": No allergens detected, completely safe
+- "ask-staff": Uncertain or may contain allergens (cross-contamination risk, "may contain", etc.)
+- "avoid": Definitely contains one or more allergens
 
-For EACH item that contains allergens, you MUST include:
-1. The item name
-2. List of allergens (ONLY from this list: ${allergenList})
-3. Allergen concentration info (e.g. "Dairy: major (cheese is primary ingredient), Wheat: minor (in sauce)")
-4. What the dish actually is (e.g. "Grilled chicken sandwich with lettuce and tomato")
+For EACH menu item, provide:
+1. Item name
+2. Category: "safe", "ask-staff", or "avoid"
+3. Allergens found (empty array if safe)
+4. Description of the dish and ingredients
+5. For "ask-staff" items, add "— confirm" to allergen names
 
 REQUIRED JSON format:
 [
   {
     "name": "Item name",
-    "allergens": ["Allergen1", "Allergen2"],
-    "description": "Dairy: major (cheese), Wheat: minor (sauce)",
-    "dishInfo": "Grilled chicken sandwich with lettuce and tomato"
+    "category": "safe" or "ask-staff" or "avoid",
+    "allergens": ["Allergen1", "Allergen2"] or [],
+    "description": "Description of ingredients",
+    "tags": ["Tag1", "Tag2"] (e.g., "Nut free", "Peanuts — confirm", "Dairy")
   }
 ]
 
 Menu text:
 ${menuText}
 
-Return ONLY the JSON array. The description field MUST contain concentration info.`
+Return ONLY the JSON array with ALL menu items categorized.`
       }
     ]
   })

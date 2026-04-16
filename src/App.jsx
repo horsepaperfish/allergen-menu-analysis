@@ -201,24 +201,14 @@ function App() {
         )}
 
         {step === 'results' && (
-          <>
-            <header>
-              <h1>Allergen Menu Analyzer</h1>
-              <p className="subtitle">Results for your selected allergens</p>
-            </header>
-
-            <main>
-              <AllergenResults results={results} />
-              <div className="results-actions">
-                <button className="reset-btn" onClick={handleReset}>
-                  Analyze Another Menu
-                </button>
-                <button className="change-allergens-btn" onClick={handleChangeAllergens}>
-                  Change Allergens
-                </button>
-              </div>
-            </main>
-          </>
+          <main>
+            <AllergenResults
+              results={results}
+              selectedAllergens={selectedAllergens}
+              onEditAllergens={handleChangeAllergens}
+              onReset={handleReset}
+            />
+          </main>
         )}
       </div>
     </div>
