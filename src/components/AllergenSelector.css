@@ -3,26 +3,12 @@
   max-width: 700px;
   text-align: center;
   padding: 40px 20px;
+  margin: 0 auto;
 }
 
 .selector-header {
   margin-bottom: 50px;
-}
-
-.logo-circle {
-  width: 80px;
-  height: 80px;
-  background: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 24px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.logo-circle svg {
-  color: #6366f1;
+  text-align: center;
 }
 
 .selector-header h1 {
@@ -34,36 +20,37 @@
 
 .selector-subtitle {
   font-size: 18px;
-  color: #6b7280;
+  color: #374151;
   margin: 0;
 }
 
 .allergen-section {
   margin-bottom: 40px;
-  text-align: left;
+  text-align: center;
 }
 
 .allergen-section h3,
 .custom-allergen-section h3 {
   font-size: 18px;
   font-weight: 600;
-  color: #9ca3af;
+  color: #4b5563;
   margin: 0 0 20px 0;
-  text-align: left;
+  text-align: center;
 }
 
 .allergen-chips {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
+  justify-content: center;
 }
 
 .allergen-chip {
   padding: 12px 24px;
-  background: transparent;
-  border: 2px solid #4b5563;
+  background: white;
+  border: 2px solid #e5e7eb;
   border-radius: 25px;
-  color: #d1d5db;
+  color: #1f2937;
   font-size: 16px;
   font-weight: 500;
   cursor: pointer;
@@ -74,18 +61,19 @@
 }
 
 .allergen-chip:hover {
-  border-color: #6b7280;
-  background: rgba(75, 85, 99, 0.1);
+  border-color: #fbbf24;
+  background: #fffbeb;
 }
 
 .allergen-chip.selected {
-  background: #ddd6fe;
-  border-color: #8b5cf6;
-  color: #5b21b6;
+  background: #fef3c7;
+  border-color: #f59e0b;
+  color: #92400e;
 }
 
 .allergen-chip.selected:hover {
-  background: #c4b5fd;
+  background: #fde68a;
+  border-color: #d97706;
 }
 
 .close-icon {
@@ -96,7 +84,7 @@
 
 .custom-allergen-section {
   margin-bottom: 30px;
-  text-align: left;
+  text-align: center;
 }
 
 .custom-input-group {
@@ -107,30 +95,30 @@
 .custom-input-group input {
   flex: 1;
   padding: 14px 20px;
-  background: transparent;
-  border: 2px solid #4b5563;
+  background: white;
+  border: 2px solid #e5e7eb;
   border-radius: 12px;
-  color: #d1d5db;
+  color: #1f2937;
   font-size: 16px;
   transition: all 0.2s ease;
 }
 
 .custom-input-group input::placeholder {
-  color: #6b7280;
+  color: #9ca3af;
 }
 
 .custom-input-group input:focus {
   outline: none;
-  border-color: #8b5cf6;
-  background: rgba(139, 92, 246, 0.05);
+  border-color: #fbbf24;
+  background: #fffbeb;
 }
 
 .custom-input-group button {
   padding: 14px 32px;
-  background: transparent;
-  border: 2px solid #4b5563;
+  background: white;
+  border: 2px solid #e5e7eb;
   border-radius: 12px;
-  color: #d1d5db;
+  color: #1f2937;
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
@@ -138,24 +126,24 @@
 }
 
 .custom-input-group button:hover {
-  border-color: #8b5cf6;
-  background: rgba(139, 92, 246, 0.1);
+  border-color: #fbbf24;
+  background: #fffbeb;
 }
 
 .tip-text {
   font-size: 14px;
-  color: #9ca3af;
+  color: #6b7280;
   margin: 0 0 30px 0;
-  text-align: left;
+  text-align: center;
 }
 
 .continue-btn {
   width: 100%;
   padding: 18px;
-  background: transparent;
-  border: 2px solid #4b5563;
+  background: #fbbf24;
+  border: 2px solid #f59e0b;
   border-radius: 12px;
-  color: #d1d5db;
+  color: #1f2937;
   font-size: 18px;
   font-weight: 600;
   cursor: pointer;
@@ -163,8 +151,10 @@
 }
 
 .continue-btn:hover {
-  border-color: #8b5cf6;
-  background: rgba(139, 92, 246, 0.1);
+  background: #f59e0b;
+  border-color: #d97706;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
 }
 
 .continue-btn:active {
