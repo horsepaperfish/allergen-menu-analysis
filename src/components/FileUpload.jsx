@@ -89,7 +89,7 @@ function FileUpload({ onFileSelect }) {
 
         <h2>Upload Files</h2>
         <p className="drag-text">Drag and drop files here or click to browse</p>
-        <p className="file-types">Supports PDF, TXT, PNG, JPG (multiple files allowed)</p>
+        <p className="file-types">Supports PDF, PNG, JPG (multiple files allowed)</p>
       </div>
     </div>
   )

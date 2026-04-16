@@ -95,10 +95,7 @@ function App() {
           {analyzing && (
             <div className="analyzing">
               <div className="spinner"></div>
-              <p>
-                Analyzing menu for allergens...
-                {progress.total > 1 && ` (${progress.current}/${progress.total})`}
-              </p>
+              <p>Analyzing menu for allergens...</p>
               {progress.total > 0 && (
                 <div className="progress-container">
                   <div
