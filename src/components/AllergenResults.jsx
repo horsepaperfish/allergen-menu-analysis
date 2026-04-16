@@ -4,6 +4,42 @@ import './AllergenResults.css'
 function AllergenResults({ results, selectedAllergens, onEditAllergens, onReset }) {
   const [activeFilter, setActiveFilter] = useState('All')
 
+  // Function to parse description and highlight allergen mentions
+  const parseDescription = (description, category) => {
+    if (!description) return null
+
+    const parts = []
+    let lastIndex = 0
+    const regex = /\[([^\]]+)\]/g
+    let match
+
+    while ((match = regex.exec(description)) !== null) {
+      // Add text before the match
+      if (match.index > lastIndex) {
+        parts.push(description.substring(lastIndex, match.index))
+      }
+
+      // Add highlighted text
+      parts.push(
+        <span
+          key={match.index}
+          className={`allergen-highlight ${category === 'avoid' ? 'avoid' : ''}`}
+        >
+          {match[1]}
+        </span>
+      )
+
+      lastIndex = match.index + match[0].length
+    }
+
+    // Add remaining text
+    if (lastIndex < description.length) {
+      parts.push(description.substring(lastIndex))
+    }
+
+    return parts.length > 0 ? parts : description
+  }
+
   // Categorize results
   const categorized = useMemo(() => {
     const safe = results.filter(item => item.category === 'safe')
@@ -29,6 +65,8 @@ function AllergenResults({ results, selectedAllergens, onEditAllergens, onReset 
 
   return (
     <div className="allergen-results">
+      <h2>Allergen results</h2>
+
       {/* Screening Section */}
       <div className="screening-section">
         <span className="screening-label">Screening for:</span>
@@ -38,6 +76,11 @@ function AllergenResults({ results, selectedAllergens, onEditAllergens, onReset 
           ))}
         </div>
         <button className="edit-btn" onClick={onEditAllergens}>Edit</button>
+      </div>
+
+      {/* Disclaimer */}
+      <div className="disclaimer-warning">
+        <strong>⚠️ Important:</strong> This is an automated suggestion only. Always double check with the restaurant directly about allergens and ingredients. This tool may not detect all allergens or cross-contamination risks.
       </div>
 
       {/* Summary Counts */}
@@ -94,7 +137,9 @@ function AllergenResults({ results, selectedAllergens, onEditAllergens, onReset 
                 <div className="item-indicator safe-indicator"></div>
                 <div className="item-content">
                   <h4 className="item-name">{item.name}</h4>
-                  <p className="item-description">{item.description}</p>
+                  <p className="item-description">
+                    {parseDescription(item.description, 'safe')}
+                  </p>
                   {item.tags && item.tags.length > 0 && (
                     <div className="item-tags">
                       {item.tags.map((tag, i) => (
@@ -116,7 +161,9 @@ function AllergenResults({ results, selectedAllergens, onEditAllergens, onReset 
                 <div className="item-indicator ask-indicator"></div>
                 <div className="item-content">
                   <h4 className="item-name">{item.name}</h4>
-                  <p className="item-description">{item.description}</p>
+                  <p className="item-description">
+                    {parseDescription(item.description, 'ask-staff')}
+                  </p>
                   {item.tags && item.tags.length > 0 && (
                     <div className="item-tags">
                       {item.tags.map((tag, i) => (
@@ -138,7 +185,9 @@ function AllergenResults({ results, selectedAllergens, onEditAllergens, onReset 
                 <div className="item-indicator avoid-indicator"></div>
                 <div className="item-content">
                   <h4 className="item-name">{item.name}</h4>
-                  <p className="item-description">{item.description}</p>
+                  <p className="item-description">
+                    {parseDescription(item.description, 'avoid')}
+                  </p>
                   {item.tags && item.tags.length > 0 && (
                     <div className="item-tags">
                       {item.tags.map((tag, i) => (
@@ -151,11 +200,6 @@ function AllergenResults({ results, selectedAllergens, onEditAllergens, onReset 
             ))}
           </div>
         )}
-      </div>
-
-      {/* Disclaimer */}
-      <div className="disclaimer">
-        This tool provides guidance only. Always confirm allergens with restaurant staff before ordering.
       </div>
 
       {/* Action Button */}

@@ -41,8 +41,11 @@ For EACH menu item, provide:
 1. Item name
 2. Category: "safe", "ask-staff", or "avoid"
 3. Allergens found (empty array if safe)
-4. Description of the dish and ingredients
-5. For "ask-staff" items, add "— confirm" to allergen names
+4. Description with allergen mentions highlighted in [brackets] and concentration level
+   - Example: "Coconut milk, vegetables, rice — [peanut paste sometimes used] (moderate amounts)"
+   - Example: "Rice noodles, shrimp, bean sprouts, [crushed peanuts] (high amounts)"
+   - Concentration levels: trace, low, moderate, high
+5. Tags for allergens with "— confirm" for ask-staff items
 
 REQUIRED JSON format:
 [
@@ -50,8 +53,8 @@ REQUIRED JSON format:
     "name": "Item name",
     "category": "safe" or "ask-staff" or "avoid",
     "allergens": ["Allergen1", "Allergen2"] or [],
-    "description": "Description of ingredients",
-    "tags": ["Tag1", "Tag2"] (e.g., "Nut free", "Peanuts — confirm", "Dairy")
+    "description": "Description with [allergen mentions in brackets] (concentration level)",
+    "tags": ["Nut free", "Peanuts — confirm", "Dairy", etc.]
   }
 ]
 
@@ -111,8 +114,11 @@ For EACH menu item, provide:
 1. Item name
 2. Category: "safe", "ask-staff", or "avoid"
 3. Allergens found (empty array if safe)
-4. Description of the dish and ingredients
-5. For "ask-staff" items, add "— confirm" to allergen names
+4. Description with allergen mentions highlighted in [brackets] and concentration level
+   - Example: "Coconut milk, vegetables, rice — [peanut paste sometimes used] (moderate amounts)"
+   - Example: "Rice noodles, shrimp, bean sprouts, [crushed peanuts] (high amounts)"
+   - Concentration levels: trace, low, moderate, high
+5. Tags for allergens with "— confirm" for ask-staff items
 
 REQUIRED JSON format:
 [
@@ -120,8 +126,8 @@ REQUIRED JSON format:
     "name": "Item name",
     "category": "safe" or "ask-staff" or "avoid",
     "allergens": ["Allergen1", "Allergen2"] or [],
-    "description": "Description of ingredients",
-    "tags": ["Tag1", "Tag2"] (e.g., "Nut free", "Peanuts — confirm", "Dairy")
+    "description": "Description with [allergen mentions in brackets] (concentration level)",
+    "tags": ["Nut free", "Peanuts — confirm", "Dairy", etc.]
   }
 ]
 

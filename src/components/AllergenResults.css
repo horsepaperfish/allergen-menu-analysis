@@ -5,6 +5,32 @@
   padding: 20px;
 }
 
+.allergen-results h2 {
+  font-size: 32px;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 24px 0;
+  text-align: center;
+}
+
+/* Disclaimer */
+.disclaimer-warning {
+  background: #fee2e2;
+  border: 2px solid #dc2626;
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin-bottom: 30px;
+  color: #991b1b;
+  font-size: 15px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.disclaimer-warning strong {
+  color: #7f1d1d;
+  font-weight: 700;
+}
+
 /* Screening Section */
 .screening-section {
   display: flex;
@@ -156,14 +182,16 @@
   display: flex;
   gap: 16px;
   padding: 20px;
-  background: #1f2937;
+  background: white;
+  border: 2px solid #e5e7eb;
   border-radius: 12px;
   margin-bottom: 12px;
   transition: all 0.2s ease;
 }
 
 .menu-item:hover {
-  background: #374151;
+  border-color: #fbbf24;
+  background: #fffbeb;
 }
 
 .item-indicator {
@@ -193,15 +221,30 @@
 .item-name {
   font-size: 20px;
   font-weight: 600;
-  color: #ffffff;
+  color: #1f2937;
   margin: 0 0 8px 0;
 }
 
 .item-description {
   font-size: 15px;
-  color: #d1d5db;
+  color: #374151;
   margin: 0 0 12px 0;
   line-height: 1.5;
+}
+
+.allergen-highlight {
+  background: #fef3c7;
+  border: 2px solid #f59e0b;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-weight: 600;
+  color: #92400e;
+}
+
+.allergen-highlight.avoid {
+  background: #fee2e2;
+  border-color: #ef4444;
+  color: #991b1b;
 }
 
 .item-tags {
@@ -230,19 +273,6 @@
 .avoid-tag {
   background: #fef2f2;
   color: #991b1b;
-}
-
-/* Disclaimer */
-.disclaimer {
-  background: #fef2f2;
-  border: 2px solid #fecaca;
-  border-radius: 12px;
-  padding: 16px;
-  text-align: center;
-  color: #991b1b;
-  font-size: 14px;
-  line-height: 1.6;
-  margin-bottom: 20px;
 }
 
 /* Action Button */
