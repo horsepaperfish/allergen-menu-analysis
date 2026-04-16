@@ -27,10 +27,10 @@
 
 .screening-chip {
   padding: 8px 16px;
-  background: white;
-  border: 2px solid #ddd6fe;
+  background: #fef3c7;
+  border: 2px solid #f59e0b;
   border-radius: 20px;
-  color: #5b21b6;
+  color: #92400e;
   font-size: 14px;
   font-weight: 500;
 }
@@ -51,6 +51,39 @@
 .edit-btn:hover {
   background: #f59e0b;
   color: white;
+}
+
+.camera-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 24px;
+  background: #fbbf24;
+  border: 2px solid #f59e0b;
+  border-radius: 10px;
+  color: #1f2937;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 20px;
+}
+
+.camera-btn:hover {
+  background: #f59e0b;
+  border-color: #d97706;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.camera-btn:active {
+  transform: translateY(0);
+}
+
+.camera-btn svg {
+  flex-shrink: 0;
 }
 
 .file-upload {

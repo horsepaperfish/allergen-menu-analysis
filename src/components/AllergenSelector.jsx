@@ -12,10 +12,7 @@ const COMMON_ALLERGENS = [
   'Fish',
   'Sesame',
   'Wheat',
-  'Corn',
-  'Mustard',
-  'Celery',
-  'Sulfites'
+  'Corn'
 ]
 
 function AllergenSelector({ onContinue }) {
