@@ -42,9 +42,15 @@ function FileUpload({ onFileSelect, onTextAnalyze, selectedAllergens, onEditAlle
     fileInputRef.current?.click()
   }
 
-  const handleAnalyze = () => {
+  const handleAnalyzeText = () => {
     if (pastedText.trim()) {
       onTextAnalyze(pastedText.trim())
+    }
+  }
+
+  const handleAnalyzeFiles = () => {
+    if (selectedFiles.length > 0) {
+      onFileSelect(selectedFiles)
     }
   }
 
@@ -88,6 +94,28 @@ function FileUpload({ onFileSelect, onTextAnalyze, selectedAllergens, onEditAlle
         <p className="file-types">JPG, PNG, or PDF</p>
       </div>
 
+      {selectedFiles.length > 0 && (
+        <div className="selected-files">
+          <h3>Selected files ({selectedFiles.length})</h3>
+          <div className="file-list">
+            {selectedFiles.map((file, index) => (
+              <div key={index} className="file-item">
+                <span className="file-name">{file.name}</span>
+                <button className="remove-file-btn" onClick={() => removeFile(index)}>
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+          <button
+            className="analyze-btn"
+            onClick={handleAnalyzeFiles}
+          >
+            Analyze menu
+          </button>
+        </div>
+      )}
+
       <p className="or-divider">OR</p>
 
       <textarea
@@ -99,7 +127,7 @@ function FileUpload({ onFileSelect, onTextAnalyze, selectedAllergens, onEditAlle
 
       <button
         className={`analyze-btn ${!pastedText.trim() ? 'disabled' : ''}`}
-        onClick={handleAnalyze}
+        onClick={handleAnalyzeText}
         disabled={!pastedText.trim()}
       >
         Analyze menu

@@ -21,18 +21,9 @@ function AllergenSelector({ onContinue, initialAllergens = null }) {
 
   useEffect(() => {
     // If initialAllergens is provided (editing existing selection), use that
-    // Otherwise, load saved allergen profile from localStorage (first time)
+    // Otherwise, start fresh with empty selection
     if (initialAllergens !== null) {
       setSelectedAllergens(initialAllergens)
-    } else {
-      const savedAllergens = localStorage.getItem('allergenProfile')
-      if (savedAllergens) {
-        try {
-          setSelectedAllergens(JSON.parse(savedAllergens))
-        } catch (e) {
-          console.error('Failed to load allergen profile')
-        }
-      }
     }
   }, [initialAllergens])
 
@@ -59,8 +50,6 @@ function AllergenSelector({ onContinue, initialAllergens = null }) {
       alert('Please select at least one allergen')
       return
     }
-    // Save to localStorage
-    localStorage.setItem('allergenProfile', JSON.stringify(selectedAllergens))
     onContinue(selectedAllergens)
   }
 
@@ -130,7 +119,7 @@ function AllergenSelector({ onContinue, initialAllergens = null }) {
       </div>
 
       <p className="tip-text">
-        Tip: you can select multiple allergens. Your profile will be saved for next time.
+        Tip: you can select multiple allergens.
       </p>
 
       <button className="continue-btn" onClick={handleContinue}>
