@@ -4,7 +4,7 @@ import './FileUpload.css'
 function FileUpload({ onFileSelect, onTextAnalyze, selectedAllergens, onEditAllergens }) {
   const [isDragging, setIsDragging] = useState(false)
   const [pastedText, setPastedText] = useState('')
-  const cameraInputRef = useRef(null)
+  const [selectedFiles, setSelectedFiles] = useState([])
   const fileInputRef = useRef(null)
 
   const handleDragOver = (e) => {
@@ -23,19 +23,19 @@ function FileUpload({ onFileSelect, onTextAnalyze, selectedAllergens, onEditAlle
 
     const files = Array.from(e.dataTransfer.files)
     if (files.length > 0) {
-      onFileSelect(files)
+      setSelectedFiles(prev => [...prev, ...files])
     }
   }
 
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files)
     if (files.length > 0) {
-      onFileSelect(files)
+      setSelectedFiles(prev => [...prev, ...files])
     }
   }
 
-  const handleCameraClick = () => {
-    cameraInputRef.current?.click()
+  const removeFile = (index) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index))
   }
 
   const handleBoxClick = () => {
@@ -50,14 +50,6 @@ function FileUpload({ onFileSelect, onTextAnalyze, selectedAllergens, onEditAlle
 
   return (
     <div className="upload-container">
-      <input
-        ref={cameraInputRef}
-        type="file"
-        accept="image/*"
-        capture="environment"
-        onChange={handleFileChange}
-        style={{ display: 'none' }}
-      />
       <input
         ref={fileInputRef}
         type="file"
@@ -77,14 +69,6 @@ function FileUpload({ onFileSelect, onTextAnalyze, selectedAllergens, onEditAlle
         <button className="edit-btn" onClick={onEditAllergens}>Edit</button>
       </div>
 
-      <button className="camera-btn" onClick={handleCameraClick}>
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-          <circle cx="12" cy="13" r="4" />
-        </svg>
-        Take Photo
-      </button>
-
       <div
         className={`file-upload ${isDragging ? 'dragging' : ''}`}
         onDragOver={handleDragOver}
@@ -100,7 +84,7 @@ function FileUpload({ onFileSelect, onTextAnalyze, selectedAllergens, onEditAlle
           </svg>
         </div>
 
-        <h2>Upload a menu photo</h2>
+        <h2>Take photo or upload a menu photo</h2>
         <p className="file-types">JPG, PNG, or PDF</p>
       </div>
 

@@ -146,13 +146,23 @@ function App() {
     setStep('select')
   }
 
+  const handleStartOver = () => {
+    setSelectedAllergens([])
+    setResults(null)
+    setError(null)
+    setStep('select')
+  }
+
   return (
     <div className="app">
       <div className="floating-circle"></div>
 
       <div className="content">
         {step === 'select' && (
-          <AllergenSelector onContinue={handleAllergenSelection} />
+          <AllergenSelector
+            onContinue={handleAllergenSelection}
+            initialAllergens={selectedAllergens.length > 0 ? selectedAllergens : null}
+          />
         )}
 
         {step === 'upload' && (

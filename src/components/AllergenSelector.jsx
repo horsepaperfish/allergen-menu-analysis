@@ -15,21 +15,26 @@ const COMMON_ALLERGENS = [
   'Corn'
 ]
 
-function AllergenSelector({ onContinue }) {
+function AllergenSelector({ onContinue, initialAllergens = null }) {
   const [selectedAllergens, setSelectedAllergens] = useState([])
   const [customAllergen, setCustomAllergen] = useState('')
 
   useEffect(() => {
-    // Load saved allergen profile from localStorage
-    const savedAllergens = localStorage.getItem('allergenProfile')
-    if (savedAllergens) {
-      try {
-        setSelectedAllergens(JSON.parse(savedAllergens))
-      } catch (e) {
-        console.error('Failed to load allergen profile')
+    // If initialAllergens is provided (editing existing selection), use that
+    // Otherwise, load saved allergen profile from localStorage (first time)
+    if (initialAllergens !== null) {
+      setSelectedAllergens(initialAllergens)
+    } else {
+      const savedAllergens = localStorage.getItem('allergenProfile')
+      if (savedAllergens) {
+        try {
+          setSelectedAllergens(JSON.parse(savedAllergens))
+        } catch (e) {
+          console.error('Failed to load allergen profile')
+        }
       }
     }
-  }, [])
+  }, [initialAllergens])
 
   const toggleAllergen = (allergen) => {
     setSelectedAllergens(prev => {
@@ -64,6 +69,11 @@ function AllergenSelector({ onContinue }) {
       addCustomAllergen()
     }
   }
+
+  // Get custom allergens (ones not in the common list)
+  const customAllergens = selectedAllergens.filter(
+    allergen => !COMMON_ALLERGENS.includes(allergen)
+  )
 
   return (
     <div className="allergen-selector">
@@ -102,6 +112,21 @@ function AllergenSelector({ onContinue }) {
           />
           <button onClick={addCustomAllergen}>Add</button>
         </div>
+
+        {customAllergens.length > 0 && (
+          <div className="allergen-chips" style={{ marginTop: '12px' }}>
+            {customAllergens.map(allergen => (
+              <button
+                key={allergen}
+                className="allergen-chip selected"
+                onClick={() => toggleAllergen(allergen)}
+              >
+                {allergen}
+                <span className="close-icon">×</span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <p className="tip-text">
