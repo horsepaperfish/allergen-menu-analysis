@@ -107,12 +107,6 @@ function FileUpload({ onFileSelect, onTextAnalyze, selectedAllergens, onEditAlle
               </div>
             ))}
           </div>
-          <button
-            className="analyze-btn"
-            onClick={handleAnalyzeFiles}
-          >
-            Analyze menu
-          </button>
         </div>
       )}
 
@@ -126,9 +120,9 @@ function FileUpload({ onFileSelect, onTextAnalyze, selectedAllergens, onEditAlle
       ></textarea>
 
       <button
-        className={`analyze-btn ${!pastedText.trim() ? 'disabled' : ''}`}
-        onClick={handleAnalyzeText}
-        disabled={!pastedText.trim()}
+        className={`analyze-btn ${!pastedText.trim() && selectedFiles.length === 0 ? 'disabled' : ''}`}
+        onClick={selectedFiles.length > 0 ? handleAnalyzeFiles : handleAnalyzeText}
+        disabled={!pastedText.trim() && selectedFiles.length === 0}
       >
         Analyze menu
       </button>
