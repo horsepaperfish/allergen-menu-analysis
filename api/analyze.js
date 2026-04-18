@@ -45,7 +45,10 @@ For EACH menu item, provide:
    - Example: "Coconut milk, vegetables, rice — [peanut paste sometimes used] (moderate amounts)"
    - Example: "Rice noodles, shrimp, bean sprouts, [crushed peanuts] (high amounts)"
    - Concentration levels: trace, low, moderate, high
-5. Tags for allergens with "— confirm" for ask-staff items
+5. Tags ONLY for allergens that are PRESENT in the item:
+   - For "avoid" items: Include only the allergens detected (e.g., "Peanuts", "Dairy")
+   - For "ask-staff" items: Add "— confirm" suffix (e.g., "Peanuts — confirm")
+   - For "safe" items: Empty tags array (DO NOT include "X free" tags)
 
 REQUIRED JSON format:
 [
@@ -54,7 +57,7 @@ REQUIRED JSON format:
     "category": "safe" or "ask-staff" or "avoid",
     "allergens": ["Allergen1", "Allergen2"] or [],
     "description": "Description with [allergen mentions in brackets] (concentration level)",
-    "tags": ["Nut free", "Peanuts — confirm", "Dairy", etc.]
+    "tags": ["Peanuts", "Dairy"] or ["Peanuts — confirm"] or []
   }
 ]
 
@@ -118,7 +121,10 @@ For EACH menu item, provide:
    - Example: "Coconut milk, vegetables, rice — [peanut paste sometimes used] (moderate amounts)"
    - Example: "Rice noodles, shrimp, bean sprouts, [crushed peanuts] (high amounts)"
    - Concentration levels: trace, low, moderate, high
-5. Tags for allergens with "— confirm" for ask-staff items
+5. Tags ONLY for allergens that are PRESENT in the item:
+   - For "avoid" items: Include only the allergens detected (e.g., "Peanuts", "Dairy")
+   - For "ask-staff" items: Add "— confirm" suffix (e.g., "Peanuts — confirm")
+   - For "safe" items: Empty tags array (DO NOT include "X free" tags)
 
 REQUIRED JSON format:
 [
@@ -127,7 +133,7 @@ REQUIRED JSON format:
     "category": "safe" or "ask-staff" or "avoid",
     "allergens": ["Allergen1", "Allergen2"] or [],
     "description": "Description with [allergen mentions in brackets] (concentration level)",
-    "tags": ["Nut free", "Peanuts — confirm", "Dairy", etc.]
+    "tags": ["Peanuts", "Dairy"] or ["Peanuts — confirm"] or []
   }
 ]
 
