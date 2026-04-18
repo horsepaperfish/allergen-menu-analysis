@@ -1,13 +1,75 @@
 import Anthropic from '@anthropic-ai/sdk'
 import busboy from 'busboy'
 import { extractText, getDocumentProxy } from 'unpdf'
+import sharp from 'sharp'
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 })
 
+// Compress image if it exceeds Anthropic's 5MB base64 limit
+async function compressImageIfNeeded(buffer, mimeType) {
+  // Base64 encoding increases size by ~33%
+  // So we need the buffer to be under ~3.75MB to stay under 5MB when base64 encoded
+  const MAX_BASE64_SIZE = 5 * 1024 * 1024 // 5MB
+  const SAFE_BUFFER_SIZE = Math.floor(MAX_BASE64_SIZE / 1.33) // ~3.75MB
+
+  let base64Image = buffer.toString('base64')
+
+  // If already under limit, return as-is
+  if (base64Image.length <= MAX_BASE64_SIZE) {
+    return { buffer, base64: base64Image, mimeType }
+  }
+
+  console.log(`Image too large (${base64Image.length} bytes), compressing...`)
+
+  // Try compression with decreasing quality levels
+  let quality = 85
+  let compressedBuffer = buffer
+
+  while (quality >= 40) {
+    try {
+      // Use sharp to compress the image
+      const sharpInstance = sharp(buffer)
+      const metadata = await sharpInstance.metadata()
+
+      // Resize if image is very large
+      let resizedInstance = sharpInstance
+      if (metadata.width > 2048 || metadata.height > 2048) {
+        resizedInstance = sharpInstance.resize(2048, 2048, {
+          fit: 'inside',
+          withoutEnlargement: true
+        })
+      }
+
+      // Convert to JPEG with quality setting
+      compressedBuffer = await resizedInstance
+        .jpeg({ quality })
+        .toBuffer()
+
+      base64Image = compressedBuffer.toString('base64')
+
+      console.log(`Compressed at quality ${quality}: ${base64Image.length} bytes`)
+
+      if (base64Image.length <= MAX_BASE64_SIZE) {
+        console.log(`Compression successful at quality ${quality}`)
+        return { buffer: compressedBuffer, base64: base64Image, mimeType: 'image/jpeg' }
+      }
+
+      quality -= 10
+    } catch (error) {
+      console.error(`Error compressing at quality ${quality}:`, error)
+      quality -= 10
+    }
+  }
+
+  // If still too large after all attempts, throw error
+  throw new Error(`Unable to compress image below 5MB limit. Final size: ${base64Image.length} bytes`)
+}
+
 async function analyzeImageDirectly(buffer, mimeType, selectedAllergens = []) {
-  const base64Image = buffer.toString('base64')
+  // Compress image if needed to stay under 5MB base64 limit
+  const { base64: base64Image, mimeType: finalMimeType } = await compressImageIfNeeded(buffer, mimeType)
 
   const allergenList = selectedAllergens.length > 0
     ? selectedAllergens.join(', ')
@@ -24,7 +86,7 @@ async function analyzeImageDirectly(buffer, mimeType, selectedAllergens = []) {
             type: 'image',
             source: {
               type: 'base64',
-              media_type: mimeType,
+              media_type: finalMimeType,
               data: base64Image,
             },
           },
