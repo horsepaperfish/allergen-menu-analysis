@@ -76,7 +76,7 @@ async function analyzeImageDirectly(buffer, mimeType, selectedAllergens = []) {
     : 'Dairy, Eggs, Fish, Shellfish, Tree Nuts, Peanuts, Wheat, Soy, Gluten, Sesame, Corn, Mustard, Celery, Lupin, Molluscs, Sulfites'
 
   const message = await anthropic.messages.create({
-    model: 'claude-3-5-haiku-20241022',
+    model: 'claude-3-5-haiku-20250110',
     max_tokens: 4096,
     messages: [
       {
@@ -163,7 +163,7 @@ async function analyzeMenuWithClaude(menuText, selectedAllergens = []) {
     : 'Dairy, Eggs, Fish, Shellfish, Tree Nuts, Peanuts, Wheat, Soy, Gluten, Sesame, Corn, Mustard, Celery, Lupin, Molluscs, Sulfites'
 
   const message = await anthropic.messages.create({
-    model: 'claude-3-5-haiku-20241022',
+    model: 'claude-3-5-haiku-20250110',
     max_tokens: 4096,
     messages: [
       {
