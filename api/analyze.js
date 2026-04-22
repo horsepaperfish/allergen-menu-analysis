@@ -92,40 +92,62 @@ async function analyzeImageDirectly(buffer, mimeType, selectedAllergens = []) {
           },
           {
             type: 'text',
-            text: `Analyze this food menu image and categorize EVERY item based on these allergens: ${allergenList}
+            text: `You are analyzing a food menu to identify allergen risks. The user is allergic to: ${allergenList}
 
-Categorize each item carefully:
-- "safe": No allergens detected, completely safe
-- "ask-staff": Items that LIKELY contain allergens BUT could potentially be modified, substituted, or prepared differently (e.g., garlic butter rolls could be made without butter, Caesar salad dressing could be modified, items with sauces that might be served on the side). Also includes uncertain allergen content or cross-contamination risk.
-- "avoid": ONLY items where the allergen is a CORE/ESSENTIAL ingredient that CANNOT be removed or substituted (e.g., cheese pizza for dairy, peanut butter sandwich for peanuts, milk/cream-based soups, items where the allergen IS the dish)
+ONLY flag these allergens. Do not mention allergens the user did not select.
 
-IMPORTANT: Be conservative with "avoid" - most items with allergens in toppings, butter, sauces, or garnishes should be "ask-staff" since they can often be modified.
+ALLERGEN FAMILIES YOU MUST RECOGNIZE:
+- Dairy: milk, cheese, butter, cream, ghee, whey, casein, lactose, yogurt, sour cream
+- Tree Nuts: almonds, cashews, walnuts, pecans, hazelnuts, pistachios, macadamias, brazil nuts, pine nuts
+- Shellfish: shrimp, crab, lobster, crawfish, mussels, clams, oysters, scallops, squid
+- Gluten: wheat, barley, rye, malt
+- Soy: soy sauce, tofu, edamame, miso, tempeh
 
-For EACH menu item, provide:
-1. Item name
-2. Category: "safe", "ask-staff", or "avoid"
-3. Allergens found (empty array if safe)
-4. Description with allergen mentions highlighted in [brackets] and concentration level
-   - Example: "Coconut milk, vegetables, rice — [peanut paste sometimes used] (moderate amounts)"
-   - Example: "Rice noodles, shrimp, bean sprouts, [crushed peanuts] (high amounts)"
-   - Concentration levels: trace, low, moderate, high
-5. Tags ONLY for allergens that are PRESENT in the item:
-   - For "avoid" items: Include only the allergens detected (e.g., "Peanuts", "Dairy")
-   - For "ask-staff" items: Add "— confirm" suffix (e.g., "Peanuts — confirm")
-   - For "safe" items: Empty tags array (DO NOT include "X free" tags)
+CLASSIFICATION RULES - Apply these two questions IN ORDER for each menu item:
 
-REQUIRED JSON format:
-[
-  {
-    "name": "Item name",
-    "category": "safe" or "ask-staff" or "avoid",
-    "allergens": ["Allergen1", "Allergen2"] or [],
-    "description": "Description with [allergen mentions in brackets] (concentration level)",
-    "tags": ["Peanuts", "Dairy"] or ["Peanuts — confirm"] or []
+QUESTION 1: Is the allergen explicitly named in the ingredients OR a defining, structural component of the dish?
+- Explicitly named: "butter," "peanuts," "shrimp," "parmesan" appear in the ingredient list
+- Defining component: The allergen IS the dish - removing it makes the dish cease to exist
+  Examples: mac and cheese (dairy), pad thai (peanuts), lobster roll (shellfish), cheesecake (dairy)
+- Dish name contains the allergen: "walnut-crusted salmon," "butter chicken," "crab cakes"
+→ If YES: Classify as AVOID. No kitchen modification can make this safe.
+→ If NO: Move to Question 2.
+
+QUESTION 2: Are there hidden risks, ambiguous terms, or cuisine-level patterns that suggest the allergen MIGHT be present?
+- Unlisted sub-ingredients: Caesar salad doesn't mention dressing, but dressing likely has parmesan
+- Cuisine patterns: Thai food often uses fish sauce/peanuts, Italian risotto uses butter/parmesan, Indian food uses ghee
+- Ambiguous terms: "cream sauce" (dairy or coconut?), "crispy coating" (wheat or gluten-free?)
+- Cross-contamination: Dish is allergen-free but prepared in shared equipment
+→ If YES: Classify as ASK_STAFF. Include specific reason and question to ask server.
+→ If NO: Classify as SAFE.
+
+CRITICAL RULES:
+- Err toward ASK_STAFF over SAFE when uncertain, but NEVER toward AVOID over ASK_STAFF
+- Reserve AVOID strictly for items where no staff conversation can make the dish safe
+- Every ASK_STAFF item MUST include a specific reason AND a specific question for the server
+- Every AVOID item MUST name the exact allergen found
+- Parse the entire dish including the dish name, not just the description
+
+REQUIRED JSON OUTPUT (no markdown, no preamble):
+{
+  "items": [
+    {
+      "name": "Exact menu item name",
+      "tier": "SAFE" or "ASK_STAFF" or "AVOID",
+      "flagged_allergens": ["Allergen1", "Allergen2"] or [],
+      "reason": "Human-readable explanation (null for SAFE items)",
+      "ask_server": "Specific question to ask (only for ASK_STAFF, null otherwise)"
+    }
+  ],
+  "summary": {
+    "safe_count": 0,
+    "ask_staff_count": 0,
+    "avoid_count": 0,
+    "total": 0
   }
-]
+}
 
-Return ONLY the JSON array with ALL menu items categorized.`
+Analyze EVERY item on this menu and return ONLY the JSON object.`
           }
         ]
       }
@@ -134,24 +156,49 @@ Return ONLY the JSON array with ALL menu items categorized.`
 
   const responseText = message.content[0].text
 
-  // Try to extract JSON array from response
-  const jsonMatch = responseText.match(/\[[\s\S]*\]/)
+  // Try to extract JSON object from response
+  const jsonMatch = responseText.match(/\{[\s\S]*\}/)
   if (!jsonMatch) {
-    console.error('No JSON array found in response')
+    console.error('No JSON object found in response')
     return []
   }
 
   try {
-    const allergenData = JSON.parse(jsonMatch[0])
+    const response = JSON.parse(jsonMatch[0])
+
+    // Transform new format to old format expected by frontend
+    const allergenData = response.items.map(item => ({
+      name: item.name,
+      category: item.tier.toLowerCase().replace('_', '-'),
+      allergens: item.flagged_allergens,
+      description: item.reason || 'No allergen concerns detected',
+      tags: item.tier === 'ASK_STAFF'
+        ? item.flagged_allergens.map(a => `${a} — confirm`)
+        : item.flagged_allergens
+    }))
+
     return allergenData
   } catch (error) {
     console.error('JSON parse error:', error.message)
+    console.error('Response text:', responseText.substring(0, 500))
     // Try to clean up common JSON errors
     try {
       const cleaned = jsonMatch[0]
         .replace(/,(\s*[}\]])/g, '$1')
         .replace(/(['"])?([a-zA-Z0-9_]+)(['"])?:/g, '"$2":')
-      return JSON.parse(cleaned)
+      const response = JSON.parse(cleaned)
+
+      const allergenData = response.items.map(item => ({
+        name: item.name,
+        category: item.tier.toLowerCase().replace('_', '-'),
+        allergens: item.flagged_allergens,
+        description: item.reason || 'No allergen concerns detected',
+        tags: item.tier === 'ASK_STAFF'
+          ? item.flagged_allergens.map(a => `${a} — confirm`)
+          : item.flagged_allergens
+      }))
+
+      return allergenData
     } catch (retryError) {
       console.error('Retry parse also failed')
       return []
@@ -170,58 +217,92 @@ async function analyzeMenuWithClaude(menuText, selectedAllergens = []) {
     messages: [
       {
         role: 'user',
-        content: `Analyze the following food menu and categorize EVERY item based on these allergens: ${allergenList}
+        content: `You are analyzing a food menu to identify allergen risks. The user is allergic to: ${allergenList}
 
-Categorize each item carefully:
-- "safe": No allergens detected, completely safe
-- "ask-staff": Items that LIKELY contain allergens BUT could potentially be modified, substituted, or prepared differently (e.g., garlic butter rolls could be made without butter, Caesar salad dressing could be modified, items with sauces that might be served on the side). Also includes uncertain allergen content or cross-contamination risk.
-- "avoid": ONLY items where the allergen is a CORE/ESSENTIAL ingredient that CANNOT be removed or substituted (e.g., cheese pizza for dairy, peanut butter sandwich for peanuts, milk/cream-based soups, items where the allergen IS the dish)
+ONLY flag these allergens. Do not mention allergens the user did not select.
 
-IMPORTANT: Be conservative with "avoid" - most items with allergens in toppings, butter, sauces, or garnishes should be "ask-staff" since they can often be modified.
+ALLERGEN FAMILIES YOU MUST RECOGNIZE:
+- Dairy: milk, cheese, butter, cream, ghee, whey, casein, lactose, yogurt, sour cream
+- Tree Nuts: almonds, cashews, walnuts, pecans, hazelnuts, pistachios, macadamias, brazil nuts, pine nuts
+- Shellfish: shrimp, crab, lobster, crawfish, mussels, clams, oysters, scallops, squid
+- Gluten: wheat, barley, rye, malt
+- Soy: soy sauce, tofu, edamame, miso, tempeh
 
-For EACH menu item, provide:
-1. Item name
-2. Category: "safe", "ask-staff", or "avoid"
-3. Allergens found (empty array if safe)
-4. Description with allergen mentions highlighted in [brackets] and concentration level
-   - Example: "Coconut milk, vegetables, rice — [peanut paste sometimes used] (moderate amounts)"
-   - Example: "Rice noodles, shrimp, bean sprouts, [crushed peanuts] (high amounts)"
-   - Concentration levels: trace, low, moderate, high
-5. Tags ONLY for allergens that are PRESENT in the item:
-   - For "avoid" items: Include only the allergens detected (e.g., "Peanuts", "Dairy")
-   - For "ask-staff" items: Add "— confirm" suffix (e.g., "Peanuts — confirm")
-   - For "safe" items: Empty tags array (DO NOT include "X free" tags)
+CLASSIFICATION RULES - Apply these two questions IN ORDER for each menu item:
 
-REQUIRED JSON format:
-[
-  {
-    "name": "Item name",
-    "category": "safe" or "ask-staff" or "avoid",
-    "allergens": ["Allergen1", "Allergen2"] or [],
-    "description": "Description with [allergen mentions in brackets] (concentration level)",
-    "tags": ["Peanuts", "Dairy"] or ["Peanuts — confirm"] or []
-  }
-]
+QUESTION 1: Is the allergen explicitly named in the ingredients OR a defining, structural component of the dish?
+- Explicitly named: "butter," "peanuts," "shrimp," "parmesan" appear in the ingredient list
+- Defining component: The allergen IS the dish - removing it makes the dish cease to exist
+  Examples: mac and cheese (dairy), pad thai (peanuts), lobster roll (shellfish), cheesecake (dairy)
+- Dish name contains the allergen: "walnut-crusted salmon," "butter chicken," "crab cakes"
+→ If YES: Classify as AVOID. No kitchen modification can make this safe.
+→ If NO: Move to Question 2.
+
+QUESTION 2: Are there hidden risks, ambiguous terms, or cuisine-level patterns that suggest the allergen MIGHT be present?
+- Unlisted sub-ingredients: Caesar salad doesn't mention dressing, but dressing likely has parmesan
+- Cuisine patterns: Thai food often uses fish sauce/peanuts, Italian risotto uses butter/parmesan, Indian food uses ghee
+- Ambiguous terms: "cream sauce" (dairy or coconut?), "crispy coating" (wheat or gluten-free?)
+- Cross-contamination: Dish is allergen-free but prepared in shared equipment
+→ If YES: Classify as ASK_STAFF. Include specific reason and question to ask server.
+→ If NO: Classify as SAFE.
+
+CRITICAL RULES:
+- Err toward ASK_STAFF over SAFE when uncertain, but NEVER toward AVOID over ASK_STAFF
+- Reserve AVOID strictly for items where no staff conversation can make the dish safe
+- Every ASK_STAFF item MUST include a specific reason AND a specific question for the server
+- Every AVOID item MUST name the exact allergen found
+- Parse the entire dish including the dish name, not just the description
 
 Menu text:
 ${menuText}
 
-Return ONLY the JSON array with ALL menu items categorized.`
+REQUIRED JSON OUTPUT (no markdown, no preamble):
+{
+  "items": [
+    {
+      "name": "Exact menu item name",
+      "tier": "SAFE" or "ASK_STAFF" or "AVOID",
+      "flagged_allergens": ["Allergen1", "Allergen2"] or [],
+      "reason": "Human-readable explanation (null for SAFE items)",
+      "ask_server": "Specific question to ask (only for ASK_STAFF, null otherwise)"
+    }
+  ],
+  "summary": {
+    "safe_count": 0,
+    "ask_staff_count": 0,
+    "avoid_count": 0,
+    "total": 0
+  }
+}
+
+Analyze EVERY item on this menu and return ONLY the JSON object.`
       }
     ]
   })
 
   const responseText = message.content[0].text
 
-  // Try to extract JSON array from response
-  const jsonMatch = responseText.match(/\[[\s\S]*\]/)
+  // Try to extract JSON object from response
+  const jsonMatch = responseText.match(/\{[\s\S]*\}/)
   if (!jsonMatch) {
-    console.error('No JSON array found in response')
+    console.error('No JSON object found in response')
     return []
   }
 
   try {
-    const allergenData = JSON.parse(jsonMatch[0])
+    const response = JSON.parse(jsonMatch[0])
+
+    // Transform new format to old format expected by frontend
+    const allergenData = response.items.map(item => ({
+      name: item.name,
+      category: item.tier.toLowerCase().replace('_', '-'),
+      allergens: item.flagged_allergens,
+      description: item.reason || 'No allergen concerns detected',
+      tags: item.tier === 'ASK_STAFF'
+        ? item.flagged_allergens.map(a => `${a} — confirm`)
+        : item.flagged_allergens
+    }))
+
     return allergenData
   } catch (error) {
     console.error('JSON parse error:', error.message)
@@ -231,7 +312,19 @@ Return ONLY the JSON array with ALL menu items categorized.`
       const cleaned = jsonMatch[0]
         .replace(/,(\s*[}\]])/g, '$1')
         .replace(/(['"])?([a-zA-Z0-9_]+)(['"])?:/g, '"$2":')
-      return JSON.parse(cleaned)
+      const response = JSON.parse(cleaned)
+
+      const allergenData = response.items.map(item => ({
+        name: item.name,
+        category: item.tier.toLowerCase().replace('_', '-'),
+        allergens: item.flagged_allergens,
+        description: item.reason || 'No allergen concerns detected',
+        tags: item.tier === 'ASK_STAFF'
+          ? item.flagged_allergens.map(a => `${a} — confirm`)
+          : item.flagged_allergens
+      }))
+
+      return allergenData
     } catch (retryError) {
       console.error('Retry parse also failed')
       return []
