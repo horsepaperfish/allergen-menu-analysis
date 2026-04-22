@@ -11,7 +11,7 @@ async function analyzeMenuWithClaude(menuText, selectedAllergens = []) {
 
   const message = await anthropic.messages.create({
     model: 'claude-haiku-4-5-20251001',
-    max_tokens: 4096,
+    max_tokens: 8096,
     messages: [
       {
         role: 'user',
@@ -76,7 +76,9 @@ Analyze EVERY item on this menu and return ONLY the JSON object.`
     ]
   })
 
-  const responseText = message.content[0].text
+  const rawText = message.content[0].text
+  // Strip markdown code fences if present
+  const responseText = rawText.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '')
 
   // Try to extract JSON object from response
   const jsonMatch = responseText.match(/\{[\s\S]*\}/)
