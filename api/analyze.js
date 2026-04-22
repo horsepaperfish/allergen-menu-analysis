@@ -94,10 +94,12 @@ async function analyzeImageDirectly(buffer, mimeType, selectedAllergens = []) {
             type: 'text',
             text: `Analyze this food menu image and categorize EVERY item based on these allergens: ${allergenList}
 
-Categorize each item:
+Categorize each item carefully:
 - "safe": No allergens detected, completely safe
-- "ask-staff": Uncertain or may contain allergens (cross-contamination risk, "may contain", etc.)
-- "avoid": Definitely contains one or more allergens
+- "ask-staff": Items that LIKELY contain allergens BUT could potentially be modified, substituted, or prepared differently (e.g., garlic butter rolls could be made without butter, Caesar salad dressing could be modified, items with sauces that might be served on the side). Also includes uncertain allergen content or cross-contamination risk.
+- "avoid": ONLY items where the allergen is a CORE/ESSENTIAL ingredient that CANNOT be removed or substituted (e.g., cheese pizza for dairy, peanut butter sandwich for peanuts, milk/cream-based soups, items where the allergen IS the dish)
+
+IMPORTANT: Be conservative with "avoid" - most items with allergens in toppings, butter, sauces, or garnishes should be "ask-staff" since they can often be modified.
 
 For EACH menu item, provide:
 1. Item name
@@ -170,10 +172,12 @@ async function analyzeMenuWithClaude(menuText, selectedAllergens = []) {
         role: 'user',
         content: `Analyze the following food menu and categorize EVERY item based on these allergens: ${allergenList}
 
-Categorize each item:
+Categorize each item carefully:
 - "safe": No allergens detected, completely safe
-- "ask-staff": Uncertain or may contain allergens (cross-contamination risk, "may contain", etc.)
-- "avoid": Definitely contains one or more allergens
+- "ask-staff": Items that LIKELY contain allergens BUT could potentially be modified, substituted, or prepared differently (e.g., garlic butter rolls could be made without butter, Caesar salad dressing could be modified, items with sauces that might be served on the side). Also includes uncertain allergen content or cross-contamination risk.
+- "avoid": ONLY items where the allergen is a CORE/ESSENTIAL ingredient that CANNOT be removed or substituted (e.g., cheese pizza for dairy, peanut butter sandwich for peanuts, milk/cream-based soups, items where the allergen IS the dish)
+
+IMPORTANT: Be conservative with "avoid" - most items with allergens in toppings, butter, sauces, or garnishes should be "ask-staff" since they can often be modified.
 
 For EACH menu item, provide:
 1. Item name
