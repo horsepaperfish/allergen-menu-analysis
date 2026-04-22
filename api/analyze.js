@@ -128,6 +128,13 @@ CRITICAL RULES:
 - Every AVOID item MUST name the exact allergen found
 - Parse the entire dish including the dish name, not just the description
 
+FORMATTING FOR REASONS:
+- For ASK_STAFF and AVOID items, highlight allergen components in [brackets]
+- Example for ASK_STAFF: "Salad with [dressing that may contain parmesan] — ask if dairy-free option available"
+- Example for AVOID: "Pasta with [butter] and [parmesan cheese] (high amounts)"
+- Include concentration levels in parentheses: (trace), (low amounts), (moderate amounts), (high amounts)
+- For SAFE items, reason should be null
+
 REQUIRED JSON OUTPUT (no markdown, no preamble):
 {
   "items": [
@@ -135,7 +142,7 @@ REQUIRED JSON OUTPUT (no markdown, no preamble):
       "name": "Exact menu item name",
       "tier": "SAFE" or "ASK_STAFF" or "AVOID",
       "flagged_allergens": ["Allergen1", "Allergen2"] or [],
-      "reason": "Human-readable explanation (null for SAFE items)",
+      "reason": "Explanation with [allergen components in brackets] (concentration) - null for SAFE",
       "ask_server": "Specific question to ask (only for ASK_STAFF, null otherwise)"
     }
   ],
@@ -253,6 +260,13 @@ CRITICAL RULES:
 - Every AVOID item MUST name the exact allergen found
 - Parse the entire dish including the dish name, not just the description
 
+FORMATTING FOR REASONS:
+- For ASK_STAFF and AVOID items, highlight allergen components in [brackets]
+- Example for ASK_STAFF: "Salad with [dressing that may contain parmesan] — ask if dairy-free option available"
+- Example for AVOID: "Pasta with [butter] and [parmesan cheese] (high amounts)"
+- Include concentration levels in parentheses: (trace), (low amounts), (moderate amounts), (high amounts)
+- For SAFE items, reason should be null
+
 Menu text:
 ${menuText}
 
@@ -263,7 +277,7 @@ REQUIRED JSON OUTPUT (no markdown, no preamble):
       "name": "Exact menu item name",
       "tier": "SAFE" or "ASK_STAFF" or "AVOID",
       "flagged_allergens": ["Allergen1", "Allergen2"] or [],
-      "reason": "Human-readable explanation (null for SAFE items)",
+      "reason": "Explanation with [allergen components in brackets] (concentration) - null for SAFE",
       "ask_server": "Specific question to ask (only for ASK_STAFF, null otherwise)"
     }
   ],
