@@ -247,6 +247,21 @@
   color: #991b1b;
 }
 
+.item-reason {
+  font-size: 13px;
+  font-style: italic;
+  margin: 4px 0 8px 0;
+  line-height: 1.4;
+}
+
+.ask-reason {
+  color: #92400e;
+}
+
+.avoid-reason {
+  color: #991b1b;
+}
+
 .item-tags {
   display: flex;
   gap: 8px;

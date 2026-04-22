@@ -164,6 +164,9 @@ function AllergenResults({ results, selectedAllergens, onEditAllergens, onReset 
                   <p className="item-description">
                     {parseDescription(item.description, 'ask-staff')}
                   </p>
+                  {item.reason && (
+                    <p className="item-reason ask-reason">{item.reason}</p>
+                  )}
                   {item.tags && item.tags.length > 0 && (
                     <div className="item-tags">
                       {item.tags.map((tag, i) => (
@@ -188,6 +191,9 @@ function AllergenResults({ results, selectedAllergens, onEditAllergens, onReset 
                   <p className="item-description">
                     {parseDescription(item.description, 'avoid')}
                   </p>
+                  {item.reason && (
+                    <p className="item-reason avoid-reason">{item.reason}</p>
+                  )}
                   {item.tags && item.tags.length > 0 && (
                     <div className="item-tags">
                       {item.tags.map((tag, i) => (

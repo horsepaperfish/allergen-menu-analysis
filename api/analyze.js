@@ -191,7 +191,8 @@ Analyze EVERY item on this menu and return ONLY the JSON object.`
       name: item.name,
       category: item.tier.toLowerCase().replace('_', '-'),
       allergens: item.flagged_allergens,
-      description: item.menu_description || item.reason || 'No description available',
+      description: item.menu_description || 'No description available',
+      reason: item.reason || null,
       tags: item.tier === 'ASK_STAFF'
         ? item.flagged_allergens.map(a => `${a} — confirm`)
         : item.flagged_allergens
@@ -212,7 +213,8 @@ Analyze EVERY item on this menu and return ONLY the JSON object.`
         name: item.name,
         category: item.tier.toLowerCase().replace('_', '-'),
         allergens: item.flagged_allergens,
-        description: item.menu_description || item.reason || 'No description available',
+        description: item.menu_description || 'No description available',
+        reason: item.reason || null,
         tags: item.tier === 'ASK_STAFF'
           ? item.flagged_allergens.map(a => `${a} — confirm`)
           : item.flagged_allergens
@@ -335,7 +337,8 @@ Analyze EVERY item on this menu and return ONLY the JSON object.`
       name: item.name,
       category: item.tier.toLowerCase().replace('_', '-'),
       allergens: item.flagged_allergens,
-      description: item.menu_description || item.reason || 'No description available',
+      description: item.menu_description || 'No description available',
+      reason: item.reason || null,
       tags: item.tier === 'ASK_STAFF'
         ? item.flagged_allergens.map(a => `${a} — confirm`)
         : item.flagged_allergens
@@ -356,7 +359,8 @@ Analyze EVERY item on this menu and return ONLY the JSON object.`
         name: item.name,
         category: item.tier.toLowerCase().replace('_', '-'),
         allergens: item.flagged_allergens,
-        description: item.menu_description || item.reason || 'No description available',
+        description: item.menu_description || 'No description available',
+        reason: item.reason || null,
         tags: item.tier === 'ASK_STAFF'
           ? item.flagged_allergens.map(a => `${a} — confirm`)
           : item.flagged_allergens
