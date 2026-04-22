@@ -19,17 +19,34 @@ async function analyzeMenuWithClaude(menuText, selectedAllergens = []) {
 
 ONLY flag these allergens. Do not mention allergens the user did not select.
 
+ALLERGEN FAMILIES YOU MUST RECOGNIZE:
+- Dairy: milk, cheese, butter, cream, ghee, whey, casein, lactose, yogurt, sour cream, aioli, béchamel
+  IMPORTANT: "butter" and "garlic butter" are DAIRY, NOT tree nuts. Never flag butter as a tree nut.
+- Tree Nuts: almonds, cashews, walnuts, pecans, hazelnuts, pistachios, macadamias, brazil nuts, pine nuts, almond flour, praline
+  IMPORTANT: Only flag tree nuts when an actual nut is explicitly named or strongly implied. Do NOT flag butter, seeds, or general sauces as tree nuts.
+- Shellfish: shrimp, crab, lobster, crawfish, mussels, clams, oysters, scallops, squid
+- Gluten: wheat, barley, rye, malt, flour, breading, croutons, battered
+- Soy: soy sauce, tofu, edamame, miso, tempeh
+
 Categorize each item:
 - "SAFE": No allergens detected, completely safe
 - "ASK_STAFF": Uncertain or may contain allergens (cross-contamination risk, "may contain", unlisted sub-ingredients, etc.)
 - "AVOID": Definitely contains one or more allergens
 
-FORMATTING FOR DESCRIPTIONS:
-- For menu_description: Copy the EXACT original menu text for this item (ingredients/description as listed on the menu). Wrap only the specific allergen-containing words/ingredients that appear in the original text in [brackets]. Do NOT add any explanation or text not from the menu.
-  - Example: "Romaine lettuce, [parmesan], croutons, [caesar dressing]"
-  - Example: "Rice noodles, bean sprouts, green onion, [crushed peanuts]"
-  - If the menu has no description for the item, use just the item name with allergen words in brackets if they appear in the name
-- For reason: Write a brief explanation of WHY this item is flagged, including concentration levels in parentheses: (trace), (low amounts), (moderate amounts), (high amounts). Null for SAFE items.
+FORMATTING FOR menu_description — THIS IS CRITICAL:
+- Copy the EXACT original menu text for this item (the description/ingredients as printed on the menu)
+- You MUST wrap every allergen-containing word or phrase that appears in the original text in [square brackets]
+- This includes both AVOID and ASK_STAFF items — always bracket the allergen words
+- Do NOT add any explanation, commentary, or text that is not from the original menu
+- Do NOT leave allergen words unhighlighted — every allergen mention in the text must be in [brackets]
+  - CORRECT: "romaine with [shaved parmesan], soft boiled egg & [croutons]"
+  - CORRECT: "Warm Pull Apart Rolls with [garlic butter]"  (garlic butter = dairy)
+  - INCORRECT: "romaine with shaved parmesan, soft boiled egg & croutons"  (missing brackets)
+- For SAFE items with no allergens: return the original text as-is with no brackets
+- If the menu item has no listed description, use just the item name (with brackets if the name contains allergen words)
+- NEVER conflate allergen families: butter = dairy, not tree nuts
+
+For reason: Write a brief explanation of WHY this item is flagged, including concentration levels in parentheses: (trace), (low amounts), (moderate amounts), (high amounts). Null for SAFE items.
 
 REQUIRED JSON OUTPUT (no markdown, no preamble):
 {
