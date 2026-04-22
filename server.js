@@ -61,11 +61,16 @@ For EACH menu item, provide:
 1. Item name
 2. Category: "safe", "ask-staff", or "avoid"
 3. Allergens found (empty array if safe)
-4. Description with allergen mentions highlighted in [brackets] and concentration level
-   - Example: "Coconut milk, vegetables, rice — [peanut paste sometimes used] (moderate amounts)"
-   - Example: "Rice noodles, shrimp, bean sprouts, [crushed peanuts] (high amounts)"
-   - Concentration levels: trace, low, moderate, high
-5. Tags for allergens with "— confirm" for ask-staff items
+4. Description: List the key ingredients of the dish. Wrap EVERY ingredient or component that contains or may contain an allergen in [square brackets]. EVERY "ask-staff" and "avoid" item MUST have at least one [bracketed ingredient] in the description.
+   - CORRECT: "applewood-smoked bacon, [hollandaise sauce], brioche"
+   - CORRECT: "rice noodles, shrimp, bean sprouts, [crushed peanuts]"
+   - CORRECT: "[pistachio piston], baby field greens, cherry tomato"
+   - WRONG: "Hollandaise sauce may contain tree nuts" (no brackets, not ingredient list format)
+   - WRONG: "Contains pistachio which is a tree nut" (no brackets)
+5. Reason: One sentence explaining why it is flagged and the concentration level (trace/low/moderate/high). Only for "ask-staff" and "avoid" items.
+   - Example: "Hollandaise sauce may contain tree nuts as a thickening agent (trace to low amounts)."
+   - Example: "Contains pistachio, a tree nut-based ingredient (high amounts)."
+6. Tags for allergens with "— confirm" for ask-staff items
 
 REQUIRED JSON format:
 [
@@ -73,7 +78,8 @@ REQUIRED JSON format:
     "name": "Item name",
     "category": "safe" or "ask-staff" or "avoid",
     "allergens": ["Allergen1", "Allergen2"] or [],
-    "description": "Description with [allergen mentions in brackets] (concentration level)",
+    "description": "ingredient1, [allergen-containing ingredient], ingredient3",
+    "reason": "One sentence explanation with concentration level (only for ask-staff and avoid)",
     "tags": ["Nut free", "Peanuts — confirm", "Dairy", etc.]
   }
 ]
@@ -134,11 +140,16 @@ For EACH menu item, provide:
 1. Item name
 2. Category: "safe", "ask-staff", or "avoid"
 3. Allergens found (empty array if safe)
-4. Description with allergen mentions highlighted in [brackets] and concentration level
-   - Example: "Coconut milk, vegetables, rice — [peanut paste sometimes used] (moderate amounts)"
-   - Example: "Rice noodles, shrimp, bean sprouts, [crushed peanuts] (high amounts)"
-   - Concentration levels: trace, low, moderate, high
-5. Tags for allergens with "— confirm" for ask-staff items
+4. Description: List the key ingredients of the dish. Wrap EVERY ingredient or component that contains or may contain an allergen in [square brackets]. EVERY "ask-staff" and "avoid" item MUST have at least one [bracketed ingredient] in the description.
+   - CORRECT: "applewood-smoked bacon, [hollandaise sauce], brioche"
+   - CORRECT: "rice noodles, shrimp, bean sprouts, [crushed peanuts]"
+   - CORRECT: "[pistachio piston], baby field greens, cherry tomato"
+   - WRONG: "Hollandaise sauce may contain tree nuts" (no brackets, not ingredient list format)
+   - WRONG: "Contains pistachio which is a tree nut" (no brackets)
+5. Reason: One sentence explaining why it is flagged and the concentration level (trace/low/moderate/high). Only for "ask-staff" and "avoid" items.
+   - Example: "Hollandaise sauce may contain tree nuts as a thickening agent (trace to low amounts)."
+   - Example: "Contains pistachio, a tree nut-based ingredient (high amounts)."
+6. Tags for allergens with "— confirm" for ask-staff items
 
 REQUIRED JSON format:
 [
@@ -146,7 +157,8 @@ REQUIRED JSON format:
     "name": "Item name",
     "category": "safe" or "ask-staff" or "avoid",
     "allergens": ["Allergen1", "Allergen2"] or [],
-    "description": "Description with [allergen mentions in brackets] (concentration level)",
+    "description": "ingredient1, [allergen-containing ingredient], ingredient3",
+    "reason": "One sentence explanation with concentration level (only for ask-staff and avoid)",
     "tags": ["Nut free", "Peanuts — confirm", "Dairy", etc.]
   }
 ]

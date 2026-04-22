@@ -154,12 +154,14 @@ CRITICAL RULES:
 
 FORMATTING FOR menu_description — THIS IS CRITICAL:
 - Copy the EXACT original menu text for this item (the description/ingredients as printed on the menu)
-- You MUST wrap every allergen-containing word or phrase that appears in the original text in [square brackets]
-- This includes both AVOID and ASK_STAFF items — always bracket the allergen words
+- For AVOID items: wrap every ingredient/word that CONTAINS the allergen in [square brackets]
+- For ASK_STAFF items: wrap every ingredient/word that IS THE REASON for the flag in [square brackets] — even if the ingredient doesn't directly name the allergen (e.g. "hollandaise" flagged for tree nuts → [hollandaise])
 - Do NOT add any explanation, commentary, or text that is not from the original menu
-- Do NOT leave allergen words unhighlighted — every allergen mention in the text must be in [brackets]
+- Do NOT leave flagged ingredients unhighlighted — the specific ingredient(s) causing the flag MUST be in [brackets]
+  - CORRECT: "applewood-smoked bacon, [hollandaise sauce], brioche"  (hollandaise flagged for tree nuts)
   - CORRECT: "romaine with [shaved parmesan], soft boiled egg & [croutons]"
   - CORRECT: "Warm Pull Apart Rolls with [garlic butter]"  (garlic butter = dairy)
+  - INCORRECT: "applewood-smoked bacon, hollandaise sauce, brioche"  (hollandaise NOT bracketed when it's the reason for the flag)
   - INCORRECT: "romaine with shaved parmesan, soft boiled egg & croutons"  (missing brackets)
 - For SAFE items with no allergens: return the original text as-is with no brackets
 - If the menu item has no listed description, use just the item name (with brackets if the name contains allergen words)
@@ -292,12 +294,14 @@ CRITICAL RULES:
 
 FORMATTING FOR menu_description — THIS IS CRITICAL:
 - Copy the EXACT original menu text for this item (the description/ingredients as printed on the menu)
-- You MUST wrap every allergen-containing word or phrase that appears in the original text in [square brackets]
-- This includes both AVOID and ASK_STAFF items — always bracket the allergen words
+- For AVOID items: wrap every ingredient/word that CONTAINS the allergen in [square brackets]
+- For ASK_STAFF items: wrap every ingredient/word that IS THE REASON for the flag in [square brackets] — even if the ingredient doesn't directly name the allergen (e.g. "hollandaise" flagged for tree nuts → [hollandaise])
 - Do NOT add any explanation, commentary, or text that is not from the original menu
-- Do NOT leave allergen words unhighlighted — every allergen mention in the text must be in [brackets]
+- Do NOT leave flagged ingredients unhighlighted — the specific ingredient(s) causing the flag MUST be in [brackets]
+  - CORRECT: "applewood-smoked bacon, [hollandaise sauce], brioche"  (hollandaise flagged for tree nuts)
   - CORRECT: "romaine with [shaved parmesan], soft boiled egg & [croutons]"
   - CORRECT: "Warm Pull Apart Rolls with [garlic butter]"  (garlic butter = dairy)
+  - INCORRECT: "applewood-smoked bacon, hollandaise sauce, brioche"  (hollandaise NOT bracketed when it's the reason for the flag)
   - INCORRECT: "romaine with shaved parmesan, soft boiled egg & croutons"  (missing brackets)
 - For SAFE items with no allergens: return the original text as-is with no brackets
 - If the menu item has no listed description, use just the item name (with brackets if the name contains allergen words)
