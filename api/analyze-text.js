@@ -4,10 +4,40 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 })
 
+const ALLERGEN_FAMILIES = {
+  'Dairy': 'milk, cheese, butter, cream, ghee, whey, casein, lactose, yogurt, sour cream, aioli, béchamel, parmesan, mozzarella, cheddar — NOTE: butter and garlic butter are DAIRY',
+  'Eggs': 'egg, eggs, mayonnaise, hollandaise, meringue, aioli',
+  'Fish': 'fish, salmon, tuna, cod, halibut, anchovies, sardines, tilapia, bass, snapper',
+  'Shellfish': 'shrimp, crab, lobster, crawfish, prawns, mussels, clams, oysters, scallops',
+  'Tree Nuts': 'almonds, cashews, walnuts, pecans, hazelnuts, pistachios, macadamias, brazil nuts, pine nuts, almond flour, praline, marzipan — NOTE: "butter" alone is NOT a tree nut',
+  'Peanuts': 'peanut, peanuts, peanut butter, groundnut, satay, pad thai',
+  'Wheat': 'wheat, flour, bread, breading, croutons, battered, pasta, noodles, roux',
+  'Soy': 'soy, soy sauce, tofu, edamame, miso, tempeh',
+  'Gluten': 'wheat, barley, rye, malt, flour, breading, croutons, battered',
+  'Sesame': 'sesame, tahini, sesame oil, sesame seeds',
+  'Corn': 'corn, cornstarch, polenta, grits, corn syrup',
+  'Mustard': 'mustard, mustard seed, mustard oil',
+  'Celery': 'celery, celeriac, celery salt, celery seed',
+  'Lupin': 'lupin, lupine flour',
+  'Molluscs': 'squid, octopus, snails, mussels, clams, oysters, scallops',
+  'Sulfites': 'sulfites, sulphites, wine, dried fruit, vinegar',
+}
+
+function buildAllergenGuide(selectedAllergens) {
+  const lines = selectedAllergens
+    .filter(a => ALLERGEN_FAMILIES[a])
+    .map(a => `- ${a}: ${ALLERGEN_FAMILIES[a]}`)
+  return lines.length > 0
+    ? `ALLERGEN RECOGNITION (ONLY for the selected allergens above):\n${lines.join('\n')}`
+    : ''
+}
+
 async function analyzeMenuWithClaude(menuText, selectedAllergens = []) {
-  const allergenList = selectedAllergens.length > 0
-    ? selectedAllergens.join(', ')
-    : 'Dairy, Eggs, Fish, Shellfish, Tree Nuts, Peanuts, Wheat, Soy, Gluten, Sesame, Corn, Mustard, Celery, Lupin, Molluscs, Sulfites'
+  const effectiveAllergens = selectedAllergens.length > 0
+    ? selectedAllergens
+    : ['Dairy', 'Eggs', 'Fish', 'Shellfish', 'Tree Nuts', 'Peanuts', 'Wheat', 'Soy', 'Gluten', 'Sesame', 'Corn', 'Mustard', 'Celery', 'Lupin', 'Molluscs', 'Sulfites']
+  const allergenList = effectiveAllergens.join(', ')
+  const allergenGuide = buildAllergenGuide(effectiveAllergens)
 
   const message = await anthropic.messages.create({
     model: 'claude-haiku-4-5-20251001',
@@ -15,36 +45,29 @@ async function analyzeMenuWithClaude(menuText, selectedAllergens = []) {
     messages: [
       {
         role: 'user',
-        content: `You are analyzing a food menu to identify allergen risks. The user is allergic to: ${allergenList}
+        content: `You are analyzing a food menu to identify allergen risks. The user is ONLY allergic to: ${allergenList}
 
-ONLY flag these allergens. Do not mention allergens the user did not select.
+CRITICAL: You must ONLY flag the allergens listed above. Do NOT flag any other allergens. If the user did not select Dairy, do not flag dairy. If they did not select Shellfish, do not flag shellfish. Only the allergens in the list above matter.
 
-ALLERGEN FAMILIES YOU MUST RECOGNIZE:
-- Dairy: milk, cheese, butter, cream, ghee, whey, casein, lactose, yogurt, sour cream, aioli, béchamel
-  IMPORTANT: "butter" and "garlic butter" are DAIRY, NOT tree nuts. Never flag butter as a tree nut.
-- Tree Nuts: almonds, cashews, walnuts, pecans, hazelnuts, pistachios, macadamias, brazil nuts, pine nuts, almond flour, praline
-  IMPORTANT: Only flag tree nuts when an actual nut is explicitly named or strongly implied. Do NOT flag butter, seeds, or general sauces as tree nuts.
-- Shellfish: shrimp, crab, lobster, crawfish, mussels, clams, oysters, scallops, squid
-- Gluten: wheat, barley, rye, malt, flour, breading, croutons, battered
-- Soy: soy sauce, tofu, edamame, miso, tempeh
+${allergenGuide}
 
 Categorize each item:
-- "SAFE": No allergens detected, completely safe
-- "ASK_STAFF": Uncertain or may contain allergens (cross-contamination risk, "may contain", unlisted sub-ingredients, etc.)
-- "AVOID": Definitely contains one or more allergens
+- "SAFE": No selected allergens detected
+- "ASK_STAFF": Item might contain one of the user's selected allergens (${allergenList})
+- "AVOID": Item definitely contains one of the user's selected allergens (${allergenList})
+
+CRITICAL RULES:
+- ONLY flag allergens from this list: ${allergenList}
+- Never flag an allergen the user did not select, even if you notice it
+- Err toward ASK_STAFF over SAFE when uncertain, but NEVER toward AVOID over ASK_STAFF
 
 FORMATTING FOR menu_description — THIS IS CRITICAL:
 - Copy the EXACT original menu text for this item (the description/ingredients as printed on the menu)
 - You MUST wrap every allergen-containing word or phrase that appears in the original text in [square brackets]
 - This includes both AVOID and ASK_STAFF items — always bracket the allergen words
 - Do NOT add any explanation, commentary, or text that is not from the original menu
-- Do NOT leave allergen words unhighlighted — every allergen mention in the text must be in [brackets]
-  - CORRECT: "romaine with [shaved parmesan], soft boiled egg & [croutons]"
-  - CORRECT: "Warm Pull Apart Rolls with [garlic butter]"  (garlic butter = dairy)
-  - INCORRECT: "romaine with shaved parmesan, soft boiled egg & croutons"  (missing brackets)
-- For SAFE items with no allergens: return the original text as-is with no brackets
+- For SAFE items: return the original text as-is with no brackets
 - If the menu item has no listed description, use just the item name (with brackets if the name contains allergen words)
-- NEVER conflate allergen families: butter = dairy, not tree nuts
 
 For reason: Write a brief explanation of WHY this item is flagged, including concentration levels in parentheses: (trace), (low amounts), (moderate amounts), (high amounts). Null for SAFE items.
 
