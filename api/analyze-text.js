@@ -10,61 +10,77 @@ async function analyzeMenuWithClaude(menuText, selectedAllergens = []) {
     : 'Dairy, Eggs, Fish, Shellfish, Tree Nuts, Peanuts, Wheat, Soy, Gluten, Sesame, Corn, Mustard, Celery, Lupin, Molluscs, Sulfites'
 
   const message = await anthropic.messages.create({
-    model: 'claude-3-haiku-20240307',
+    model: 'claude-haiku-4-5-20251001',
     max_tokens: 4096,
     messages: [
       {
         role: 'user',
-        content: `Analyze the following food menu and categorize EVERY item based on these allergens: ${allergenList}
+        content: `You are analyzing a food menu to identify allergen risks. The user is allergic to: ${allergenList}
+
+ONLY flag these allergens. Do not mention allergens the user did not select.
 
 Categorize each item:
-- "safe": No allergens detected, completely safe
-- "ask-staff": Uncertain or may contain allergens (cross-contamination risk, "may contain", etc.)
-- "avoid": Definitely contains one or more allergens
+- "SAFE": No allergens detected, completely safe
+- "ASK_STAFF": Uncertain or may contain allergens (cross-contamination risk, "may contain", unlisted sub-ingredients, etc.)
+- "AVOID": Definitely contains one or more allergens
 
-For EACH menu item, provide:
-1. Item name
-2. Category: "safe", "ask-staff", or "avoid"
-3. Allergens found (empty array if safe)
-4. Description with allergen mentions highlighted in [brackets] and concentration level
-   - Example: "Coconut milk, vegetables, rice — [peanut paste sometimes used] (moderate amounts)"
-   - Example: "Rice noodles, shrimp, bean sprouts, [crushed peanuts] (high amounts)"
-   - Concentration levels: trace, low, moderate, high
-5. Tags ONLY for allergens that are PRESENT in the item:
-   - For "avoid" items: Include only the allergens detected (e.g., "Peanuts", "Dairy")
-   - For "ask-staff" items: Add "— confirm" suffix (e.g., "Peanuts — confirm")
-   - For "safe" items: Empty tags array (DO NOT include "X free" tags)
+FORMATTING FOR DESCRIPTIONS:
+- For menu_description: Copy the EXACT original menu text for this item (ingredients/description as listed on the menu). Wrap only the specific allergen-containing words/ingredients that appear in the original text in [brackets]. Do NOT add any explanation or text not from the menu.
+  - Example: "Romaine lettuce, [parmesan], croutons, [caesar dressing]"
+  - Example: "Rice noodles, bean sprouts, green onion, [crushed peanuts]"
+  - If the menu has no description for the item, use just the item name with allergen words in brackets if they appear in the name
+- For reason: Write a brief explanation of WHY this item is flagged, including concentration levels in parentheses: (trace), (low amounts), (moderate amounts), (high amounts). Null for SAFE items.
 
-REQUIRED JSON format:
-[
-  {
-    "name": "Item name",
-    "category": "safe" or "ask-staff" or "avoid",
-    "allergens": ["Allergen1", "Allergen2"] or [],
-    "description": "Description with [allergen mentions in brackets] (concentration level)",
-    "tags": ["Peanuts", "Dairy"] or ["Peanuts — confirm"] or []
+REQUIRED JSON OUTPUT (no markdown, no preamble):
+{
+  "items": [
+    {
+      "name": "Exact menu item name",
+      "tier": "SAFE" or "ASK_STAFF" or "AVOID",
+      "flagged_allergens": ["Allergen1", "Allergen2"] or [],
+      "menu_description": "Original menu text with [allergen words in brackets] — only text from the actual menu",
+      "reason": "Brief explanation with concentration level - null for SAFE",
+      "ask_server": "Specific question to ask (only for ASK_STAFF, null otherwise)"
+    }
+  ],
+  "summary": {
+    "safe_count": 0,
+    "ask_staff_count": 0,
+    "avoid_count": 0,
+    "total": 0
   }
-]
+}
 
 Menu text:
 ${menuText}
 
-Return ONLY the JSON array with ALL menu items categorized.`
+Analyze EVERY item on this menu and return ONLY the JSON object.`
       }
     ]
   })
 
   const responseText = message.content[0].text
 
-  // Try to extract JSON array from response
-  const jsonMatch = responseText.match(/\[[\s\S]*\]/)
+  // Try to extract JSON object from response
+  const jsonMatch = responseText.match(/\{[\s\S]*\}/)
   if (!jsonMatch) {
-    console.error('No JSON array found in response')
+    console.error('No JSON object found in response')
     return []
   }
 
   try {
-    const allergenData = JSON.parse(jsonMatch[0])
+    const response = JSON.parse(jsonMatch[0])
+
+    const allergenData = response.items.map(item => ({
+      name: item.name,
+      category: item.tier.toLowerCase().replace('_', '-'),
+      allergens: item.flagged_allergens,
+      description: item.menu_description || item.reason || 'No description available',
+      tags: item.tier === 'ASK_STAFF'
+        ? item.flagged_allergens.map(a => `${a} — confirm`)
+        : item.flagged_allergens
+    }))
+
     return allergenData
   } catch (error) {
     console.error('JSON parse error:', error.message)
@@ -74,7 +90,19 @@ Return ONLY the JSON array with ALL menu items categorized.`
       const cleaned = jsonMatch[0]
         .replace(/,(\s*[}\]])/g, '$1')
         .replace(/(['"])?([a-zA-Z0-9_]+)(['"])?:/g, '"$2":')
-      return JSON.parse(cleaned)
+      const response = JSON.parse(cleaned)
+
+      const allergenData = response.items.map(item => ({
+        name: item.name,
+        category: item.tier.toLowerCase().replace('_', '-'),
+        allergens: item.flagged_allergens,
+        description: item.menu_description || item.reason || 'No description available',
+        tags: item.tier === 'ASK_STAFF'
+          ? item.flagged_allergens.map(a => `${a} — confirm`)
+          : item.flagged_allergens
+      }))
+
+      return allergenData
     } catch (retryError) {
       console.error('Retry parse also failed')
       return []

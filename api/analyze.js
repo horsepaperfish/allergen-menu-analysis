@@ -128,12 +128,14 @@ CRITICAL RULES:
 - Every AVOID item MUST name the exact allergen found
 - Parse the entire dish including the dish name, not just the description
 
-FORMATTING FOR REASONS:
-- For ASK_STAFF and AVOID items, highlight allergen components in [brackets]
-- Example for ASK_STAFF: "Salad with [dressing that may contain parmesan] — ask if dairy-free option available"
-- Example for AVOID: "Pasta with [butter] and [parmesan cheese] (high amounts)"
-- Include concentration levels in parentheses: (trace), (low amounts), (moderate amounts), (high amounts)
-- For SAFE items, reason should be null
+FORMATTING FOR DESCRIPTIONS AND REASONS:
+- For menu_description: Copy the EXACT original menu text for this item (name + listed ingredients/description as shown on the menu). Wrap only the specific allergen-containing words/ingredients that appear in the original text in [brackets]. Do NOT add any explanation or text not from the menu.
+  - Example: "Romaine lettuce, [parmesan], croutons, [caesar dressing]"
+  - Example: "Rice noodles, bean sprouts, green onion, [crushed peanuts]"
+  - If the menu has no description for the item, use just the item name with allergen words in brackets if they appear in the name
+- For reason: Write a brief explanation of WHY this item is flagged, including concentration levels
+  - Include concentration levels in parentheses: (trace), (low amounts), (moderate amounts), (high amounts)
+  - For SAFE items, reason should be null
 
 REQUIRED JSON OUTPUT (no markdown, no preamble):
 {
@@ -142,7 +144,8 @@ REQUIRED JSON OUTPUT (no markdown, no preamble):
       "name": "Exact menu item name",
       "tier": "SAFE" or "ASK_STAFF" or "AVOID",
       "flagged_allergens": ["Allergen1", "Allergen2"] or [],
-      "reason": "Explanation with [allergen components in brackets] (concentration) - null for SAFE",
+      "menu_description": "Original menu text with [allergen words in brackets] — only text from the actual menu",
+      "reason": "Brief explanation with concentration level - null for SAFE",
       "ask_server": "Specific question to ask (only for ASK_STAFF, null otherwise)"
     }
   ],
@@ -178,7 +181,7 @@ Analyze EVERY item on this menu and return ONLY the JSON object.`
       name: item.name,
       category: item.tier.toLowerCase().replace('_', '-'),
       allergens: item.flagged_allergens,
-      description: item.reason || 'No allergen concerns detected',
+      description: item.menu_description || item.reason || 'No description available',
       tags: item.tier === 'ASK_STAFF'
         ? item.flagged_allergens.map(a => `${a} — confirm`)
         : item.flagged_allergens
@@ -199,7 +202,7 @@ Analyze EVERY item on this menu and return ONLY the JSON object.`
         name: item.name,
         category: item.tier.toLowerCase().replace('_', '-'),
         allergens: item.flagged_allergens,
-        description: item.reason || 'No allergen concerns detected',
+        description: item.menu_description || item.reason || 'No description available',
         tags: item.tier === 'ASK_STAFF'
           ? item.flagged_allergens.map(a => `${a} — confirm`)
           : item.flagged_allergens
@@ -260,12 +263,14 @@ CRITICAL RULES:
 - Every AVOID item MUST name the exact allergen found
 - Parse the entire dish including the dish name, not just the description
 
-FORMATTING FOR REASONS:
-- For ASK_STAFF and AVOID items, highlight allergen components in [brackets]
-- Example for ASK_STAFF: "Salad with [dressing that may contain parmesan] — ask if dairy-free option available"
-- Example for AVOID: "Pasta with [butter] and [parmesan cheese] (high amounts)"
-- Include concentration levels in parentheses: (trace), (low amounts), (moderate amounts), (high amounts)
-- For SAFE items, reason should be null
+FORMATTING FOR DESCRIPTIONS AND REASONS:
+- For menu_description: Copy the EXACT original menu text for this item (name + listed ingredients/description as shown on the menu). Wrap only the specific allergen-containing words/ingredients that appear in the original text in [brackets]. Do NOT add any explanation or text not from the menu.
+  - Example: "Romaine lettuce, [parmesan], croutons, [caesar dressing]"
+  - Example: "Rice noodles, bean sprouts, green onion, [crushed peanuts]"
+  - If the menu has no description for the item, use just the item name with allergen words in brackets if they appear in the name
+- For reason: Write a brief explanation of WHY this item is flagged, including concentration levels
+  - Include concentration levels in parentheses: (trace), (low amounts), (moderate amounts), (high amounts)
+  - For SAFE items, reason should be null
 
 Menu text:
 ${menuText}
@@ -277,7 +282,8 @@ REQUIRED JSON OUTPUT (no markdown, no preamble):
       "name": "Exact menu item name",
       "tier": "SAFE" or "ASK_STAFF" or "AVOID",
       "flagged_allergens": ["Allergen1", "Allergen2"] or [],
-      "reason": "Explanation with [allergen components in brackets] (concentration) - null for SAFE",
+      "menu_description": "Original menu text with [allergen words in brackets] — only text from the actual menu",
+      "reason": "Brief explanation with concentration level - null for SAFE",
       "ask_server": "Specific question to ask (only for ASK_STAFF, null otherwise)"
     }
   ],
@@ -311,7 +317,7 @@ Analyze EVERY item on this menu and return ONLY the JSON object.`
       name: item.name,
       category: item.tier.toLowerCase().replace('_', '-'),
       allergens: item.flagged_allergens,
-      description: item.reason || 'No allergen concerns detected',
+      description: item.menu_description || item.reason || 'No description available',
       tags: item.tier === 'ASK_STAFF'
         ? item.flagged_allergens.map(a => `${a} — confirm`)
         : item.flagged_allergens
@@ -332,7 +338,7 @@ Analyze EVERY item on this menu and return ONLY the JSON object.`
         name: item.name,
         category: item.tier.toLowerCase().replace('_', '-'),
         allergens: item.flagged_allergens,
-        description: item.reason || 'No allergen concerns detected',
+        description: item.menu_description || item.reason || 'No description available',
         tags: item.tier === 'ASK_STAFF'
           ? item.flagged_allergens.map(a => `${a} — confirm`)
           : item.flagged_allergens
