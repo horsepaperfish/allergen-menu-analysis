@@ -262,6 +262,49 @@
   color: #991b1b;
 }
 
+/* Waiter questions */
+.item-questions {
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin: 6px 0 10px 0;
+}
+
+.ask-questions {
+  background: #fffbeb;
+  border-left: 3px solid #f59e0b;
+}
+
+.avoid-questions {
+  background: #fff5f5;
+  border-left: 3px solid #ef4444;
+}
+
+.questions-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 6px 0;
+  color: #6b7280;
+}
+
+.questions-list {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.question-item {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: #1f2937;
+  margin-bottom: 4px;
+}
+
+.question-item:last-child {
+  margin-bottom: 0;
+}
+
 .item-tags {
   display: flex;
   gap: 8px;

@@ -167,6 +167,16 @@ function AllergenResults({ results, selectedAllergens, onEditAllergens, onReset 
                   {item.reason && (
                     <p className="item-reason ask-reason">{item.reason}</p>
                   )}
+                  {item.questions && item.questions.length > 0 && (
+                    <div className="item-questions ask-questions">
+                      <p className="questions-label">Ask your waiter:</p>
+                      <ul className="questions-list">
+                        {item.questions.map((q, i) => (
+                          <li key={i} className="question-item">{q}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                   {item.tags && item.tags.length > 0 && (
                     <div className="item-tags">
                       {item.tags.map((tag, i) => (
@@ -193,6 +203,16 @@ function AllergenResults({ results, selectedAllergens, onEditAllergens, onReset 
                   </p>
                   {item.reason && (
                     <p className="item-reason avoid-reason">{item.reason}</p>
+                  )}
+                  {item.questions && item.questions.length > 0 && (
+                    <div className="item-questions avoid-questions">
+                      <p className="questions-label">Ask your waiter:</p>
+                      <ul className="questions-list">
+                        {item.questions.map((q, i) => (
+                          <li key={i} className="question-item">{q}</li>
+                        ))}
+                      </ul>
+                    </div>
                   )}
                   {item.tags && item.tags.length > 0 && (
                     <div className="item-tags">

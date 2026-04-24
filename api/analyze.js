@@ -223,6 +223,11 @@ FORMATTING FOR menu_description — THIS IS CRITICAL AND MANDATORY:
 
 For reason: Write a brief explanation of WHY this item is flagged, including concentration levels in parentheses: (trace), (low amounts), (moderate amounts), (high amounts). Null for SAFE items.
 
+For ask_server: Generate 2–3 short, practical questions a diner can ask the waiter about this specific dish and allergen. Return as a JSON array of strings. The questions should be specific to the dish — not generic. Examples:
+- ASK_STAFF (dairy, truffle cream): ["Does the truffle cream contain any dairy or cream?", "Can the truffle cream be left off or swapped for a dairy-free option?"]
+- AVOID (dairy, cheese burger): ["Is it possible to make this burger without cheese?", "Does the patty or sauce contain any butter or dairy?"]
+- SAFE: null (no questions needed)
+
 REQUIRED JSON OUTPUT (no markdown, no preamble):
 {
   "items": [
@@ -232,7 +237,7 @@ REQUIRED JSON OUTPUT (no markdown, no preamble):
       "flagged_allergens": ["Allergen1", "Allergen2"] or [],
       "menu_description": "Original menu text with [allergen words in brackets] — only text from the actual menu",
       "reason": "Brief explanation with concentration level - null for SAFE",
-      "ask_server": "Specific question to ask (only for ASK_STAFF, null otherwise)"
+      "ask_server": ["Question 1 to ask the waiter?", "Question 2?"]
     }
   ],
   "summary": {
@@ -271,6 +276,7 @@ Analyze EVERY item on this menu and return ONLY the JSON object.`
       allergens: item.flagged_allergens,
       description: ensureBracketsPresent(item.menu_description || 'No description available', item.tier, item.flagged_allergens),
       reason: item.reason || null,
+      questions: Array.isArray(item.ask_server) ? item.ask_server : (item.ask_server ? [item.ask_server] : null),
       tags: item.tier === 'ASK_STAFF'
         ? item.flagged_allergens.map(a => `${a} — confirm`)
         : item.flagged_allergens
@@ -365,6 +371,11 @@ FORMATTING FOR menu_description — THIS IS CRITICAL AND MANDATORY:
 
 For reason: Write a brief explanation of WHY this item is flagged, including concentration levels in parentheses: (trace), (low amounts), (moderate amounts), (high amounts). Null for SAFE items.
 
+For ask_server: Generate 2–3 short, practical questions a diner can ask the waiter about this specific dish and allergen. Return as a JSON array of strings. The questions should be specific to the dish — not generic. Examples:
+- ASK_STAFF (dairy, truffle cream): ["Does the truffle cream contain any dairy or cream?", "Can the truffle cream be left off or swapped for a dairy-free option?"]
+- AVOID (dairy, cheese burger): ["Is it possible to make this burger without cheese?", "Does the patty or sauce contain any butter or dairy?"]
+- SAFE: null (no questions needed)
+
 Menu text:
 ${menuText}
 
@@ -377,7 +388,7 @@ REQUIRED JSON OUTPUT (no markdown, no preamble):
       "flagged_allergens": ["Allergen1", "Allergen2"] or [],
       "menu_description": "Original menu text with [allergen words in brackets] — only text from the actual menu",
       "reason": "Brief explanation with concentration level - null for SAFE",
-      "ask_server": "Specific question to ask (only for ASK_STAFF, null otherwise)"
+      "ask_server": ["Question 1 to ask the waiter?", "Question 2?"]
     }
   ],
   "summary": {
@@ -414,6 +425,7 @@ Analyze EVERY item on this menu and return ONLY the JSON object.`
       allergens: item.flagged_allergens,
       description: ensureBracketsPresent(item.menu_description || 'No description available', item.tier, item.flagged_allergens),
       reason: item.reason || null,
+      questions: Array.isArray(item.ask_server) ? item.ask_server : (item.ask_server ? [item.ask_server] : null),
       tags: item.tier === 'ASK_STAFF'
         ? item.flagged_allergens.map(a => `${a} — confirm`)
         : item.flagged_allergens
