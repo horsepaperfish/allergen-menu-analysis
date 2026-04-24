@@ -27,6 +27,59 @@ const ALLERGEN_FAMILIES = {
   'Sulfites': 'sulfites, sulphites, wine, dried fruit, vinegar',
 }
 
+// Raw terms per allergen (without the NOTE clauses), used for fallback bracketing
+const ALLERGEN_TERMS = {
+  'Dairy': ['milk', 'cheese', 'butter', 'cream', 'ghee', 'whey', 'casein', 'lactose', 'yogurt', 'sour cream', 'aioli', 'béchamel', 'parmesan', 'mozzarella', 'cheddar', 'brie', 'garlic butter', 'gouda', 'gruyère', 'gruyere', 'beurre'],
+  'Eggs': ['egg', 'eggs', 'mayonnaise', 'mayo', 'hollandaise', 'meringue', 'aioli'],
+  'Fish': ['fish', 'salmon', 'tuna', 'cod', 'halibut', 'anchovies', 'sardines', 'tilapia', 'bass', 'snapper', 'anchovy'],
+  'Shellfish': ['shrimp', 'crab', 'lobster', 'crawfish', 'prawn', 'prawns', 'mussels', 'clams', 'oysters', 'scallops'],
+  'Tree Nuts': ['almond', 'almonds', 'cashew', 'cashews', 'walnut', 'walnuts', 'pecan', 'pecans', 'hazelnut', 'hazelnuts', 'pistachio', 'pistachios', 'macadamia', 'brazil nut', 'pine nut', 'pine nuts', 'almond flour', 'praline', 'marzipan'],
+  'Peanuts': ['peanut', 'peanuts', 'peanut butter', 'groundnut', 'satay'],
+  'Wheat': ['wheat', 'flour', 'bread', 'breading', 'croutons', 'battered', 'pasta', 'noodles', 'roux', 'brioche', 'pretzel', 'bun', 'roll', 'toast'],
+  'Soy': ['soy', 'soy sauce', 'tofu', 'edamame', 'miso', 'tempeh'],
+  'Gluten': ['wheat', 'barley', 'rye', 'malt', 'flour', 'breading', 'croutons', 'battered'],
+  'Sesame': ['sesame', 'tahini', 'sesame oil', 'sesame seeds'],
+  'Corn': ['corn', 'cornstarch', 'polenta', 'grits', 'corn syrup'],
+  'Mustard': ['mustard', 'mustard seed', 'mustard oil'],
+  'Celery': ['celery', 'celeriac', 'celery salt', 'celery seed'],
+  'Lupin': ['lupin', 'lupine'],
+  'Molluscs': ['squid', 'octopus', 'snails', 'mussels', 'clams', 'oysters', 'scallops'],
+  'Sulfites': ['sulfites', 'sulphites', 'wine', 'dried fruit', 'vinegar'],
+}
+
+// Fallback: if the AI returned a non-SAFE item with no [brackets], try to add them
+// by finding known allergen terms in the description text.
+function ensureBracketsPresent(description, tier, flaggedAllergens) {
+  if (!description || tier === 'SAFE') return description
+  if (/\[/.test(description)) return description // already has brackets
+
+  if (!flaggedAllergens || flaggedAllergens.length === 0) return description
+
+  // Sort terms longest-first so multi-word terms (e.g. "sour cream") match before single words
+  const terms = []
+  for (const allergen of flaggedAllergens) {
+    const allergenTerms = ALLERGEN_TERMS[allergen] || []
+    terms.push(...allergenTerms)
+  }
+  terms.sort((a, b) => b.length - a.length)
+
+  let result = description
+  const alreadyBracketed = new Set()
+
+  for (const term of terms) {
+    if (alreadyBracketed.has(term.toLowerCase())) continue
+    const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const regex = new RegExp(`(?<!\\[)\\b${escaped}\\b(?![^\\[]*\\])`, 'gi')
+    const newResult = result.replace(regex, `[$&]`)
+    if (newResult !== result) {
+      alreadyBracketed.add(term.toLowerCase())
+      result = newResult
+    }
+  }
+
+  return result
+}
+
 // Build allergen recognition section for only the selected allergens
 function buildAllergenGuide(selectedAllergens) {
   const lines = selectedAllergens
@@ -152,19 +205,21 @@ CRITICAL RULES:
 - Every ASK_STAFF item MUST include a specific reason AND a specific question for the server
 - Every AVOID item MUST name the exact allergen found
 
-FORMATTING FOR menu_description — THIS IS CRITICAL:
+FORMATTING FOR menu_description — THIS IS CRITICAL AND MANDATORY:
 - Copy the EXACT original menu text for this item (the description/ingredients as printed on the menu)
-- For AVOID items: wrap every ingredient/word that CONTAINS the allergen in [square brackets]
-- For ASK_STAFF items: wrap every ingredient/word that IS THE REASON for the flag in [square brackets] — even if the ingredient doesn't directly name the allergen (e.g. "hollandaise" flagged for tree nuts → [hollandaise])
+- For AVOID items: wrap EVERY ingredient/word that CONTAINS the allergen in [square brackets]
+- For ASK_STAFF items: wrap EVERY ingredient/word that IS THE REASON for the flag in [square brackets] — even if the ingredient doesn't directly name the allergen
+- RULE: If an item is ASK_STAFF or AVOID, its menu_description MUST contain at least one [bracketed] term. No exceptions.
 - Do NOT add any explanation, commentary, or text that is not from the original menu
 - Do NOT leave flagged ingredients unhighlighted — the specific ingredient(s) causing the flag MUST be in [brackets]
-  - CORRECT: "applewood-smoked bacon, [hollandaise sauce], brioche"  (hollandaise flagged for tree nuts)
-  - CORRECT: "romaine with [shaved parmesan], soft boiled egg & [croutons]"
+  - CORRECT: "applewood-smoked bacon, [hollandaise sauce], brioche"  (hollandaise flagged for eggs)
+  - CORRECT: "romaine with [shaved parmesan], soft boiled egg & [croutons]"  (parmesan=dairy, croutons=wheat)
   - CORRECT: "Warm Pull Apart Rolls with [garlic butter]"  (garlic butter = dairy)
-  - INCORRECT: "applewood-smoked bacon, hollandaise sauce, brioche"  (hollandaise NOT bracketed when it's the reason for the flag)
-  - INCORRECT: "romaine with shaved parmesan, soft boiled egg & croutons"  (missing brackets)
+  - CORRECT: "steakhouse chili"  → "[steakhouse chili]"  (if the dish name itself is the reason)
+  - INCORRECT: "applewood-smoked bacon, hollandaise sauce, brioche"  (hollandaise NOT bracketed — WRONG)
+  - INCORRECT: "romaine with shaved parmesan, soft boiled egg & croutons"  (no brackets — WRONG)
 - For SAFE items with no allergens: return the original text as-is with no brackets
-- If the menu item has no listed description, use just the item name (with brackets if the name contains allergen words)
+- If the menu item has no listed description, use just the item name (with brackets if the name itself is the reason for flagging)
 
 For reason: Write a brief explanation of WHY this item is flagged, including concentration levels in parentheses: (trace), (low amounts), (moderate amounts), (high amounts). Null for SAFE items.
 
@@ -214,7 +269,7 @@ Analyze EVERY item on this menu and return ONLY the JSON object.`
       name: item.name,
       category: item.tier.toLowerCase().replace('_', '-'),
       allergens: item.flagged_allergens,
-      description: item.menu_description || 'No description available',
+      description: ensureBracketsPresent(item.menu_description || 'No description available', item.tier, item.flagged_allergens),
       reason: item.reason || null,
       tags: item.tier === 'ASK_STAFF'
         ? item.flagged_allergens.map(a => `${a} — confirm`)
@@ -292,19 +347,21 @@ CRITICAL RULES:
 - Every ASK_STAFF item MUST include a specific reason AND a specific question for the server
 - Every AVOID item MUST name the exact allergen found
 
-FORMATTING FOR menu_description — THIS IS CRITICAL:
+FORMATTING FOR menu_description — THIS IS CRITICAL AND MANDATORY:
 - Copy the EXACT original menu text for this item (the description/ingredients as printed on the menu)
-- For AVOID items: wrap every ingredient/word that CONTAINS the allergen in [square brackets]
-- For ASK_STAFF items: wrap every ingredient/word that IS THE REASON for the flag in [square brackets] — even if the ingredient doesn't directly name the allergen (e.g. "hollandaise" flagged for tree nuts → [hollandaise])
+- For AVOID items: wrap EVERY ingredient/word that CONTAINS the allergen in [square brackets]
+- For ASK_STAFF items: wrap EVERY ingredient/word that IS THE REASON for the flag in [square brackets] — even if the ingredient doesn't directly name the allergen
+- RULE: If an item is ASK_STAFF or AVOID, its menu_description MUST contain at least one [bracketed] term. No exceptions.
 - Do NOT add any explanation, commentary, or text that is not from the original menu
 - Do NOT leave flagged ingredients unhighlighted — the specific ingredient(s) causing the flag MUST be in [brackets]
-  - CORRECT: "applewood-smoked bacon, [hollandaise sauce], brioche"  (hollandaise flagged for tree nuts)
-  - CORRECT: "romaine with [shaved parmesan], soft boiled egg & [croutons]"
+  - CORRECT: "applewood-smoked bacon, [hollandaise sauce], brioche"  (hollandaise flagged for eggs)
+  - CORRECT: "romaine with [shaved parmesan], soft boiled egg & [croutons]"  (parmesan=dairy, croutons=wheat)
   - CORRECT: "Warm Pull Apart Rolls with [garlic butter]"  (garlic butter = dairy)
-  - INCORRECT: "applewood-smoked bacon, hollandaise sauce, brioche"  (hollandaise NOT bracketed when it's the reason for the flag)
-  - INCORRECT: "romaine with shaved parmesan, soft boiled egg & croutons"  (missing brackets)
+  - CORRECT: "steakhouse chili"  → "[steakhouse chili]"  (if the dish name itself is the reason)
+  - INCORRECT: "applewood-smoked bacon, hollandaise sauce, brioche"  (hollandaise NOT bracketed — WRONG)
+  - INCORRECT: "romaine with shaved parmesan, soft boiled egg & croutons"  (no brackets — WRONG)
 - For SAFE items with no allergens: return the original text as-is with no brackets
-- If the menu item has no listed description, use just the item name (with brackets if the name contains allergen words)
+- If the menu item has no listed description, use just the item name (with brackets if the name itself is the reason for flagging)
 
 For reason: Write a brief explanation of WHY this item is flagged, including concentration levels in parentheses: (trace), (low amounts), (moderate amounts), (high amounts). Null for SAFE items.
 
@@ -355,7 +412,7 @@ Analyze EVERY item on this menu and return ONLY the JSON object.`
       name: item.name,
       category: item.tier.toLowerCase().replace('_', '-'),
       allergens: item.flagged_allergens,
-      description: item.menu_description || 'No description available',
+      description: ensureBracketsPresent(item.menu_description || 'No description available', item.tier, item.flagged_allergens),
       reason: item.reason || null,
       tags: item.tier === 'ASK_STAFF'
         ? item.flagged_allergens.map(a => `${a} — confirm`)
